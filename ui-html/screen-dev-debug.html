@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="zh-CN"><head><script data-od-sandbox-shim="">(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+  document.addEventListener('click', (e) => {
+    if (!e.target || !(e.target instanceof Element)) return;
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (href === null) return;
+    var isAnchor = href.startsWith('#') || href === '';
+    if (isAnchor) {
+      e.preventDefault();
+      if (href === '' || href === '#') {
+        window.scrollTo({ top: 0 });
+        history.replaceState(null, '', ' ');
+      } else {
+        var targetId = href.slice(1);
+        var target = targetId ? document.getElementById(targetId) : null;
+        if (target) {
+          target.scrollIntoView();
+          location.hash === href && history.replaceState(null, '', ' ');
+          location.hash = href;
+        }
+      }
+    } else if (link.getAttribute('target') === '_blank') {
+      e.preventDefault();
+      let safe = false;
+      try {
+        var url = new URL(href, location.href);
+        safe =
+          url.protocol === 'http:' ||
+          url.protocol === 'https:' ||
+          url.protocol === 'mailto:';
+      } catch (_) {}
+      safe && window.open(href, '_blank', 'noopener,noreferrer');
+    }
+  });
+})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>企训通 - 开发者调试</title>
+  <style>
+    :root {
+      --bg: #f8f9fb;
+      --surface: #ffffff;
+      --fg: #1a1a1a;
+      --fg-2: #4b5563;
+      --muted: #667085;
+      --border: #e7e8ee;
+      --accent: #4f8ef7;
+      --accent-2: #7c6efc;
+      --accent-on: #ffffff;
+      --success: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+      --font-body: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+      --text-xs: 12px;
+      --text-sm: 14px;
+      --text-base: 16px;
+      --text-lg: 18px;
+      --text-xl: 22px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --radius-pill: 9999px;
+      --gradient-primary: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      --gradient-soft: linear-gradient(135deg, rgba(79, 142, 247, 0.08) 0%, rgba(124, 110, 252, 0.08) 100%);
+      --elev-soft: 0 2px 12px rgba(0, 0, 0, 0.04);
+      --focus-ring: 0 0 0 4px rgba(79, 142, 247, 0.16);
+      --motion-base: 220ms;
+      --ease-standard: cubic-bezier(0.28, 0, 0.22, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: var(--fg);
+      background: var(--bg);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    input,
+    select,
+    textarea,
+    a {
+      font: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .phone-container {
+      width: 393px;
+      height: 852px;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.15);
+      border-radius: 48px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-status-bar {
+      height: 47px;
+      padding: 12px 28px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: var(--text-sm);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .phone-notch {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 32px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 10;
+    }
+
+    .app-header {
+      display: grid;
+      grid-template-columns: 42px 1fr 42px;
+      align-items: center;
+      padding: 6px 20px 12px;
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .back-btn {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--surface);
+      color: var(--fg);
+      display: grid;
+      place-items: center;
+      text-decoration: none;
+      box-shadow: var(--elev-soft);
+    }
+
+    .page-title {
+      text-align: center;
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .phone-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 20px 124px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .hero-card {
+      margin-top: 4px;
+      margin-bottom: var(--space-4);
+      padding: 20px;
+      border-radius: var(--radius-xl);
+      color: var(--accent-on);
+      background: var(--gradient-primary);
+      box-shadow: 0 16px 34px rgba(79, 142, 247, 0.22);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      width: 130px;
+      height: 130px;
+      right: -44px;
+      top: -48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 12px;
+      padding: 7px 11px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.18);
+      font-size: var(--text-xs);
+      font-weight: 800;
+    }
+
+    .hero-title {
+      position: relative;
+      z-index: 1;
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      line-height: 1.25;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+      font-size: var(--text-sm);
+      line-height: 1.6;
+      opacity: 0.9;
+    }
+
+    .section-card {
+      padding: var(--space-5);
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      box-shadow: var(--elev-soft);
+      margin-bottom: var(--space-4);
+    }
+
+    .section-head {
+      margin-bottom: var(--space-4);
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: var(--text-base);
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .section-desc {
+      color: var(--muted);
+      font-size: var(--text-sm);
+      line-height: 1.5;
+    }
+
+    .dot-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .dot-option {
+      width: 100%;
+      min-height: 54px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg);
+      color: var(--fg);
+      display: grid;
+      grid-template-columns: 22px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 13px;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color var(--motion-base) var(--ease-standard), background var(--motion-base) var(--ease-standard);
+    }
+
+    .dot-option:focus-visible,
+    .field-control:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--muted);
+      background: var(--surface);
+      position: relative;
+    }
+
+    .dot-option.active {
+      border-color: rgba(79, 142, 247, 0.42);
+      background: var(--gradient-soft);
+    }
+
+    .dot-option.active .dot {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+
+    .dot-option.active .dot::after {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      background: var(--surface);
+    }
+
+    .dot-title {
+      display: block;
+      font-size: var(--text-sm);
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    .dot-meta {
+      display: block;
+      color: var(--muted);
+      font-size: var(--text-xs);
+    }
+
+    .env-pill {
+      padding: 5px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--surface);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .field-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: var(--text-sm);
+      font-weight: 800;
+    }
+
+    .field-control {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg);
+      color: var(--fg);
+      padding: 12px 13px;
+      font-size: var(--text-sm);
+      transition: box-shadow var(--motion-base) var(--ease-standard), border-color var(--motion-base) var(--ease-standard);
+    }
+
+    select.field-control {
+      appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+      background-position: calc(100% - 18px) 20px, calc(100% - 13px) 20px;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+      padding-right: 38px;
+    }
+
+    textarea.field-control {
+      min-height: 84px;
+      resize: none;
+      line-height: 1.5;
+    }
+
+    .fixed-actions {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 14px 20px 34px;
+      background: rgba(248, 249, 251, 0.94);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .action-btn {
+      min-height: 50px;
+      border-radius: var(--radius-lg);
+      border: 0;
+      font-size: var(--text-base);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .action-cancel {
+      background: var(--surface);
+      color: var(--fg-2);
+      border: 1px solid var(--border);
+    }
+
+    .action-save {
+      background: var(--gradient-primary);
+      color: var(--accent-on);
+      box-shadow: 0 10px 24px rgba(79, 142, 247, 0.24);
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 104px;
+      transform: translateX(-50%) translateY(12px);
+      padding: 10px 14px;
+      border-radius: var(--radius-pill);
+      background: rgba(26, 26, 26, 0.9);
+      color: white;
+      font-size: var(--text-sm);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--motion-base) var(--ease-standard), transform var(--motion-base) var(--ease-standard);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 430px) {
+      body {
+        padding: 0;
+      }
+
+      .phone-container {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+<style data-od-tweaks-bridge-style="">
+[data-od-tweaks-hidden] .tw-panel {
+  transform: translateX(calc(100% + 32px)) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.tw-restore { display: none !important; }
+</style><script data-od-tweaks-bridge="">(function(){
+  // Synchronously hide BEFORE the artifact body parses so the panel never
+  // flashes on initial paint. The host removes the attribute via postMessage
+  // once it knows the desired state.
+  document.documentElement.setAttribute('data-od-tweaks-hidden', '');
+
+  var suppressEcho = false;
+  var observer = null;
+
+  function panelEl(){ return document.querySelector('.tw-panel'); }
+
+  function applyClassesToPanel(visible){
+    var panel = panelEl();
+    if (panel) panel.classList.toggle('tw-hidden', !visible);
+  }
+
+  function setPanelVisible(visible){
+    suppressEcho = true;
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
+    applyClassesToPanel(visible);
+    // Clear flag after the MutationObserver has had a chance to fire for this
+    // change so we don't echo our own host-driven toggles back to the host.
+    Promise.resolve().then(function(){ suppressEcho = false; });
+  }
+
+  function postState(){
+    var panel = panelEl();
+    if (!panel) return;
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-panel-state',
+        visible: !panel.classList.contains('tw-hidden'),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function postAvailability(){
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-available',
+        available: !!panelEl(),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function attachObserver(){
+    var panel = panelEl();
+    if (!panel || observer) return;
+    observer = new MutationObserver(function(){
+      if (suppressEcho) return;
+      postState();
+    });
+    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  function onReady(){
+    // Capture the panel authored visibility BEFORE we apply the host hidden
+    // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
+    // (before the body parses), so on entry to onReady the attribute is
+    // always present even though the artifact may have authored the panel
+    // as default-visible. Reading the panel class first is the only place
+    // we can still observe the author intent. Then drive the attribute,
+    // classes, and posted state from that captured value so a default
+    // visible tw-panel reports visible:true and the toolbar toggle starts
+    // ON. Issue surfaced in PR #1643 review.
+    var panel = panelEl();
+    var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
+    applyClassesToPanel(initialVisible);
+    attachObserver();
+    postAvailability();
+    // Post the captured initial visibility so the toolbar toggle reflects
+    // the default state on mount. Without this the toggle reads OFF while
+    // a default-visible tw-panel artifact clearly shows its panel and the
+    // user would have to click toggle-on then toggle-off to actually hide.
+    postState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+    onReady();
+  }
+
+  window.addEventListener('message', function(ev){
+    if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
+    setPanelVisible(!!ev.data.visible);
+  });
+})();</script></head>
+<body>
+  <div class="phone-container" data-od-id="path-0">
+    <div class="phone-status-bar">
+      <span>9:41</span>
+      <div class="phone-notch"></div>
+      <span>🔋</span>
+    </div>
+
+    <header class="app-header" data-od-id="path-0-1">
+      <a class="back-btn" href="screen-profile.html" aria-label="返回我的页面" data-od-id="path-0-1-0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </a>
+      <h1 class="page-title" data-od-id="path-0-1-1">开发者调试</h1>
+      <div></div>
+    </header>
+
+    <main class="phone-content" data-od-id="path-0-2">
+      <section class="hero-card" data-od-id="path-0-2-0">
+        <div class="hero-kicker" data-od-id="path-0-2-0-0">
+          <span>Debug</span>
+          <span>内部环境</span>
+        </div>
+        <h2 class="hero-title" data-od-id="path-0-2-0-1">切换调试配置前，请确认当前账号和接口环境。</h2>
+        <p class="hero-copy">此页面用于培训 App 内部联调，保存后仅影响当前设备的调试参数。</p>
+      </section>
+
+      <section class="section-card" data-od-id="path-0-2-1">
+        <div class="section-head" data-od-id="path-0-2-1-0">
+          <h2 class="section-title" data-od-id="path-0-2-1-0-0">接口环境</h2>
+          <p class="section-desc">一行一个点按钮，选择后用于接口请求和日志上报。</p>
+        </div>
+        <div class="dot-list" role="radiogroup" aria-label="接口环境" data-od-id="path-0-2-1-1">
+          <button class="dot-option active" type="button" role="radio" aria-checked="true" data-env="测试环境" data-od-id="path-0-2-1-1-0">
+            <span class="dot" aria-hidden="true"></span>
+            <span>
+              <span class="dot-title">测试环境</span>
+              <span class="dot-meta">api-test.qixuntong.local</span>
+            </span>
+            <span class="env-pill">当前</span>
+          </button>
+          <button class="dot-option" type="button" role="radio" aria-checked="false" data-env="预发环境" data-od-id="path-0-2-1-1-1">
+            <span class="dot" aria-hidden="true"></span>
+            <span>
+              <span class="dot-title">预发环境</span>
+              <span class="dot-meta">api-mock.qixuntong.com</span>
+            </span>
+            <span class="env-pill">灰度</span>
+          </button>
+          <button class="dot-option" type="button" role="radio" aria-checked="false" data-env="生产环境" data-od-id="path-0-2-1-1-2">
+            <span class="dot" aria-hidden="true"></span>
+            <span>
+              <span class="dot-title">生产环境</span>
+              <span class="dot-meta">api.qixuntong.com</span>
+            </span>
+            <span class="env-pill">线上</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="section-card" data-od-id="path-0-2-2">
+        <div class="section-head" data-od-id="path-0-2-2-0">
+          <h2 class="section-title" data-od-id="path-0-2-2-0-0">调试表单</h2>
+          <p class="section-desc">配置联调范围和临时参数，保存后下次打开仍按当前设置展示。</p>
+        </div>
+        <div class="field-stack" data-od-id="path-0-2-2-1">
+          <div class="field">
+            <label for="debug-module">调试范围</label>
+            <select id="debug-module" class="field-control" data-od-id="path-0-2-2-1-0-1">
+              <option>考试流程</option>
+              <option>课程播放</option>
+              <option>证书中心</option>
+              <option>登录与权限</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="api-path">接口路径</label>
+            <input id="api-path" class="field-control" type="text" value="/training/exam/submit" placeholder="请输入接口路径" data-od-id="path-0-2-2-1-1-1">
+          </div>
+          <div class="field">
+            <label for="user-id">测试用户 ID</label>
+            <input id="user-id" class="field-control" type="text" value="u_20260528_zhang" placeholder="请输入用户 ID" data-od-id="path-0-2-2-1-2-1">
+          </div>
+          <div class="field">
+            <label for="debug-note">调试备注</label>
+            <textarea id="debug-note" class="field-control" placeholder="记录本次联调目标" data-od-id="path-0-2-2-1-3-1">验证考试提交、结果页、证书跳转链路。</textarea>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" data-od-id="path-0-3">已保存调试配置</div>
+
+    <div class="fixed-actions">
+      <button class="action-btn action-cancel" type="button" id="cancelBtn" data-od-id="path-0-4-0">取消</button>
+      <button class="action-btn action-save" type="button" id="saveBtn" data-od-id="path-0-4-1">保存</button>
+    </div>
+  </div>
+
+  <script>
+    const options = document.querySelectorAll('.dot-option');
+    const toast = document.getElementById('toast');
+    let toastTimer;
+
+    options.forEach((option) => {
+      option.addEventListener('click', () => {
+        options.forEach((item) => {
+          item.classList.remove('active');
+          item.setAttribute('aria-checked', 'false');
+        });
+        option.classList.add('active');
+        option.setAttribute('aria-checked', 'true');
+      });
+    });
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const selected = document.querySelector('.dot-option.active')?.dataset.env || '测试环境';
+      showToast(`${selected}配置已保存`);
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+      window.location.href = 'screen-profile.html';
+    });
+  </script>
+
+
+<script data-od-snapshot-bridge="">(function(){
+  function copyComputedStyle(source, target){
+    if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
+    var computed = window.getComputedStyle(source);
+    var style = target.getAttribute('style') || '';
+    for (var i = 0; i < computed.length; i++){
+      var prop = computed[i];
+      style += prop + ':' + computed.getPropertyValue(prop) + ';';
+    }
+    target.setAttribute('style', style);
+  }
+  function syncElementState(source, target){
+    var tag = source.tagName ? source.tagName.toLowerCase() : '';
+    if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
+    if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
+    if (tag === 'canvas') {
+      try {
+        var img = document.createElement('img');
+        img.setAttribute('src', source.toDataURL('image/png'));
+        img.setAttribute('style', target.getAttribute('style') || '');
+        target.parentNode && target.parentNode.replaceChild(img, target);
+      } catch (_) {}
+    }
+  }
+  function inlineSnapshotStyles(originalRoot, cloneRoot){
+    copyComputedStyle(originalRoot, cloneRoot);
+    syncElementState(originalRoot, cloneRoot);
+    var originals = originalRoot.querySelectorAll('*');
+    var clones = cloneRoot.querySelectorAll('*');
+    var count = Math.min(originals.length, clones.length);
+    for (var i = 0; i < count; i++){
+      copyComputedStyle(originals[i], clones[i]);
+      syncElementState(originals[i], clones[i]);
+    }
+    var scripts = cloneRoot.querySelectorAll('script');
+    for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
+  }
+  function waitForImages(){
+    var imgs = Array.prototype.slice.call(document.images || []);
+    return Promise.all(imgs.map(function(img){
+      if (img.complete) return Promise.resolve();
+      return new Promise(function(resolve){
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      });
+    }));
+  }
+  function renderSnapshot(id){
+    var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
+    var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+    var dpr = window.devicePixelRatio || 1;
+    var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
+    var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+    var clone = document.documentElement.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    inlineSnapshotStyles(document.documentElement, clone);
+    var serializer = new XMLSerializer();
+    var html = serializer.serializeToString(clone);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+      '<foreignObject x="' + (-window.scrollX || 0) + '" y="' + (-window.scrollY || 0) + '" width="' + docW + '" height="' + docH + '">' +
+      html +
+      '</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.floor(w * dpr));
+        canvas.height = Math.max(1, Math.floor(h * dpr));
+        var ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('no 2d context');
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(img, 0, 0, w, h);
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
+      } catch (err) {
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
+      }
+    };
+    img.onerror = function(){
+      window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:snapshot' || !data.id) return;
+    waitForImages().then(function(){ renderSnapshot(String(data.id)); });
+  });
+})();</script><script data-od-srcdoc-transport-activation="">(function(){
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
+    document.open();
+    document.write(data.html);
+    document.close();
+  });
+})();</script></body></html>

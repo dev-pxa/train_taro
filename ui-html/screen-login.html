@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>企训通 - 登录</title>
+  <style>
+    :root {
+      --bg: #f8f9fb;
+      --surface: #ffffff;
+      --fg: #1a1a1a;
+      --fg-2: #4b5563;
+      --muted: #667085;
+      --border: #e7e8ee;
+      --accent: #4f8ef7;
+      --accent-2: #7c6efc;
+      --accent-on: #ffffff;
+      --accent-hover: #3a7de6;
+      --accent-active: #2c6ed1;
+      --success: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+
+      --font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+      --font-body: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+
+      --text-xs: 12px;
+      --text-sm: 14px;
+      --text-base: 16px;
+      --text-lg: 18px;
+      --text-xl: 22px;
+      --text-2xl: 28px;
+      --text-3xl: 36px;
+      --text-4xl: 48px;
+
+      --leading-body: 1.5;
+      --leading-tight: 1.2;
+      --tracking-display: -0.01em;
+
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-12: 48px;
+
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --radius-pill: 9999px;
+
+      --elev-flat: none;
+      --elev-ring: 0 0 0 1px var(--border);
+      --elev-raised: 0 4px 24px rgba(0, 0, 0, 0.06);
+      --elev-soft: 0 2px 12px rgba(0, 0, 0, 0.04);
+
+      --focus-ring: 0 0 0 4px rgba(79, 142, 247, 0.15);
+
+      --gradient-primary: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      --gradient-soft: linear-gradient(135deg, rgba(79, 142, 247, 0.08) 0%, rgba(124, 110, 252, 0.08) 100%);
+
+      --motion-fast: 150ms;
+      --motion-base: 220ms;
+      --ease-standard: cubic-bezier(0.28, 0, 0.22, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: var(--leading-body);
+      color: var(--fg);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .phone-container {
+      width: 393px;
+      height: 852px;
+      margin: 0 auto;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.15);
+      border-radius: 48px;
+    }
+
+    .phone-status-bar {
+      height: 47px;
+      padding: 12px 28px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: var(--text-sm);
+      font-weight: 600;
+      font-family: var(--font-display);
+    }
+
+    .phone-notch {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 32px;
+      background: #000;
+      border-radius: 20px;
+    }
+
+    .phone-content {
+      height: calc(100% - 47px - 34px);
+      overflow-y: auto;
+      padding: var(--space-5);
+    }
+
+    .phone-home-indicator {
+      height: 34px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 8px;
+    }
+
+    .home-indicator-bar {
+      width: 134px;
+      height: 5px;
+      background: var(--fg);
+      border-radius: 100px;
+      opacity: 0.3;
+    }
+
+    .login-hero {
+      text-align: center;
+      padding-top: var(--space-8);
+      padding-bottom: var(--space-8);
+    }
+
+    .logo-icon {
+      width: 120px;
+      height: 120px;
+      border-radius: var(--radius-xl);
+      background: var(--gradient-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto var(--space-6);
+      box-shadow: 0 16px 40px rgba(79, 142, 247, 0.3);
+    }
+
+    .logo-icon svg {
+      width: 64px;
+      height: 64px;
+    }
+
+    .app-title {
+      font-family: var(--font-display);
+      font-size: var(--text-3xl);
+      font-weight: 700;
+      letter-spacing: var(--tracking-display);
+      margin-bottom: var(--space-2);
+    }
+
+    .app-subtitle {
+      font-size: var(--text-lg);
+      color: var(--muted);
+    }
+
+    .form-group {
+      margin-bottom: var(--space-5);
+    }
+
+    .form-label {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--fg-2);
+      margin-bottom: var(--space-2);
+      display: block;
+    }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 18px 20px;
+      font-size: var(--text-base);
+      font-family: var(--font-body);
+      color: var(--fg);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      outline: none;
+      transition: border-color var(--motion-base) var(--ease-standard),
+                  box-shadow var(--motion-base) var(--ease-standard),
+                  transform var(--motion-fast) var(--ease-standard);
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .form-select {
+      padding-right: 52px;
+    }
+
+    .select-arrow {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--muted);
+    }
+
+    .form-input::placeholder {
+      color: var(--muted);
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--accent);
+      box-shadow: var(--focus-ring);
+    }
+
+    .input-with-icon {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 20px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+    }
+
+    .input-with-icon .form-input {
+      padding-left: 56px;
+    }
+
+    .form-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-8);
+      font-size: var(--text-sm);
+    }
+
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      cursor: pointer;
+    }
+
+    .checkbox {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--motion-base) var(--ease-standard);
+    }
+
+    .checkbox-wrapper input {
+      display: none;
+    }
+
+    .checkbox-wrapper input:checked + .checkbox {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .checkbox-wrapper input:checked + .checkbox svg {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .checkbox svg {
+      width: 14px;
+      height: 14px;
+      color: white;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: all var(--motion-base) var(--ease-standard);
+    }
+
+    .link {
+      color: var(--accent);
+      font-weight: 500;
+      text-decoration: none;
+      transition: color var(--motion-fast) var(--ease-standard);
+    }
+
+    .link:hover {
+      color: var(--accent-hover);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 32px;
+      font-size: var(--text-lg);
+      font-weight: 600;
+      font-family: var(--font-display);
+      border: none;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all var(--motion-base) var(--ease-standard);
+      outline: none;
+      text-decoration: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      color: var(--accent-on);
+      box-shadow: 0 12px 32px rgba(79, 142, 247, 0.35);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 16px 40px rgba(79, 142, 247, 0.4);
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .register-prompt {
+      text-align: center;
+      margin-top: var(--space-6);
+      font-size: var(--text-sm);
+      color: var(--muted);
+    }
+
+    .register-prompt .link {
+      font-size: var(--text-base);
+      font-weight: 600;
+    }
+
+    .page-nav {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-4);
+      margin-top: var(--space-8);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--border);
+    }
+
+    .nav-btn {
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-pill);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      text-decoration: none;
+      color: var(--fg-2);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: all var(--motion-base) var(--ease-standard);
+    }
+
+    .nav-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .nav-btn.active {
+      background: var(--gradient-soft);
+      color: var(--accent);
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity var(--motion-base) var(--ease-standard),
+                  visibility var(--motion-base) var(--ease-standard);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 32px 32px 0 0;
+      width: 100%;
+      max-width: 430px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform var(--motion-base) var(--ease-standard);
+    }
+
+    .modal-overlay.active .modal {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-5) var(--space-5) var(--space-4);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 1;
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--fg);
+    }
+
+    .modal-close {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-pill);
+      border: none;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--motion-fast) var(--ease-standard);
+      color: var(--fg-2);
+    }
+
+    .modal-close:hover {
+      background: var(--border);
+      transform: scale(1.05);
+    }
+
+    .modal-close:active {
+      transform: scale(0.95);
+    }
+
+    .modal-tabs {
+      display: flex;
+      padding: var(--space-3) var(--space-5);
+      gap: var(--space-2);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-tab {
+      flex: 1;
+      padding: var(--space-2) var(--space-4);
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-pill);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      font-family: var(--font-body);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all var(--motion-fast) var(--ease-standard);
+    }
+
+    .modal-tab:hover {
+      background: var(--border);
+    }
+
+    .modal-tab.active {
+      background: var(--gradient-primary);
+      color: var(--accent-on);
+    }
+
+    .modal-content {
+      padding: var(--space-5);
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-section {
+      display: none;
+    }
+
+    .modal-section.active {
+      display: block;
+    }
+
+    .modal-section h3 {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--fg);
+      margin-bottom: var(--space-3);
+      margin-top: var(--space-5);
+    }
+
+    .modal-section h3:first-child {
+      margin-top: 0;
+    }
+
+    .modal-section p {
+      font-size: var(--text-sm);
+      line-height: 1.7;
+      color: var(--fg-2);
+      margin-bottom: var(--space-3);
+    }
+
+    .modal-section ul {
+      margin-left: var(--space-4);
+      margin-bottom: var(--space-3);
+    }
+
+    .modal-section li {
+      font-size: var(--text-sm);
+      line-height: 1.7;
+      color: var(--fg-2);
+      margin-bottom: var(--space-2);
+    }
+
+    .modal-footer {
+      padding: var(--space-4) var(--space-5) var(--space-6);
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      gap: var(--space-3);
+    }
+
+    .modal-footer .btn {
+      flex: 1;
+      padding: 16px var(--space-4);
+      font-size: var(--text-base);
+    }
+
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--fg);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    @media (max-width: 430px) {
+      .phone-container {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-container">
+    <div class="phone-status-bar">
+      <span>9:41</span>
+      <div class="phone-notch"></div>
+      <span>🔋</span>
+    </div>
+
+    <div class="phone-content">
+      <div class="login-hero">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="white" opacity="0.9"/>
+            <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h1 class="app-title">企训通</h1>
+        <p class="app-subtitle">智能家居行业领先的培训平台</p>
+      </div>
+
+      <form>
+        <div class="form-group">
+          <label class="form-label">企业</label>
+          <div class="select-wrapper">
+            <select class="form-select">
+              <option>智家科技总部</option>
+              <option>智家科技上海分公司</option>
+              <option>智家科技深圳分公司</option>
+            </select>
+            <div class="select-arrow">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-with-icon">
+            <div class="input-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <input type="text" class="form-input" placeholder="工号 / 手机号">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-with-icon">
+            <div class="input-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M19 11H5C3.89543 11 3 11.8954 3 13V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V13C21 11.8954 20.1046 11 19 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <input type="password" class="form-input" placeholder="请输入密码">
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <label class="checkbox-wrapper">
+            <input type="checkbox">
+            <div class="checkbox">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span>我已阅读并同意</span>
+          </label>
+          <a href="#" class="link" id="open-terms">服务协议和隐私条款</a>
+          <a href="#" class="link">忘记密码？</a>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-block">立即开启学习</button>
+
+        <div class="register-prompt">
+          还没有账号？ <a href="#" class="link">立即注册</a>
+        </div>
+      </form>
+
+      <div class="page-nav">
+        <a href="screen-login.html" class="nav-btn active">登录</a>
+        <a href="screen-home.html" class="nav-btn">首页</a>
+        <a href="screen-profile.html" class="nav-btn">我的</a>
+      </div>
+    </div>
+
+    <div class="phone-home-indicator">
+      <div class="home-indicator-bar"></div>
+    </div>
+  </div>
+
+  <!-- Service Terms & Privacy Policy Modal -->
+  <div class="modal-overlay" id="terms-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">服务协议与隐私政策</h2>
+        <button class="modal-close" id="close-modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-tab="terms">服务协议</button>
+        <button class="modal-tab" data-tab="privacy">隐私政策</button>
+      </div>
+      <div class="modal-content">
+        <div class="modal-section active" id="terms-section">
+          <h3>一、服务条款概述</h3>
+          <p>欢迎使用企训通平台。在使用本平台前，请您仔细阅读以下服务条款。使用本平台即表示您已充分理解并同意本协议的全部内容。</p>
+
+          <h3>二、用户账号</h3>
+          <ul>
+            <li>您应妥善保管账号和密码，对账号下的所有行为负责</li>
+            <li>账号仅限本人使用，不得转借、转让或共享</li>
+            <li>如发现账号异常使用，请立即通知平台管理员</li>
+          </ul>
+
+          <h3>三、学习服务</h3>
+          <p>企训通为用户提供智能家居行业相关的培训课程、考试认证等服务。平台将持续更新课程内容，确保教学质量。</p>
+
+          <h3>四、使用规范</h3>
+          <ul>
+            <li>不得利用平台从事任何违法违规活动</li>
+            <li>不得恶意复制、传播平台课程内容</li>
+            <li>不得干扰平台的正常运行</li>
+            <li>尊重知识产权，保护平台内容版权</li>
+          </ul>
+
+          <h3>五、免责声明</h3>
+          <p>平台将尽力保障服务的稳定性，但不对因不可抗力、网络故障等原因导致的服务中断承担责任。</p>
+        </div>
+        <div class="modal-section" id="privacy-section">
+          <h3>一、隐私保护原则</h3>
+          <p>我们非常重视您的隐私保护，将按照法律法规要求，采取安全保护措施保护您的个人信息安全。</p>
+
+          <h3>二、信息收集</h3>
+          <ul>
+            <li>账号信息：工号、手机号、姓名等必要的身份信息</li>
+            <li>学习数据：学习进度、考试成绩、学习时长等</li>
+            <li>设备信息：用于保障账号安全的设备标识</li>
+          </ul>
+
+          <h3>三、信息使用</h3>
+          <p>我们收集的信息仅用于提供学习服务、优化用户体验、保障账号安全等目的，不会向无关第三方泄露。</p>
+
+          <h3>四、信息存储</h3>
+          <p>您的个人信息将存储在安全的服务器上，我们采用加密技术保护数据安全，并按照法律规定的期限保存。</p>
+
+          <h3>五、您的权利</h3>
+          <ul>
+            <li>查询、更正您的个人信息</li>
+            <li>删除您的账号及相关数据</li>
+            <li>撤回同意（可能影响服务使用）</li>
+            <li>投诉和建议的权利</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="disagree-btn">不同意</button>
+        <button class="btn btn-primary" id="agree-btn">同意并继续</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Modal functionality
+    const openTermsBtn = document.getElementById('open-terms');
+    const termsModal = document.getElementById('terms-modal');
+    const closeModalBtn = document.getElementById('close-modal');
+    const disagreeBtn = document.getElementById('disagree-btn');
+    const agreeBtn = document.getElementById('agree-btn');
+    const modalTabs = document.querySelectorAll('.modal-tab');
+    const modalSections = document.querySelectorAll('.modal-section');
+
+    // Open modal
+    openTermsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      termsModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+
+    // Close modal
+    function closeModal() {
+      termsModal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    closeModalBtn.addEventListener('click', closeModal);
+    disagreeBtn.addEventListener('click', closeModal);
+
+    // Close on overlay click
+    termsModal.addEventListener('click', (e) => {
+      if (e.target === termsModal) {
+        closeModal();
+      }
+    });
+
+    // Agree button - also checks the checkbox
+    agreeBtn.addEventListener('click', () => {
+      const checkbox = document.querySelector('.checkbox-wrapper input[type="checkbox"]');
+      checkbox.checked = true;
+      closeModal();
+    });
+
+    // Tab switching
+    modalTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetTab = tab.dataset.tab;
+
+        // Update tab states
+        modalTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Update section states
+        modalSections.forEach(section => section.classList.remove('active'));
+        document.getElementById(`${targetTab}-section`).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

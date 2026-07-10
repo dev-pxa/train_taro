@@ -1,6 +1,7 @@
-import { Component } from 'react'
+import React, { Component } from 'react'
 
 import type { PropsWithChildren } from 'react'
+import { AuthProvider } from './contexts/AuthContext'
 
 import './app.scss'
 
@@ -14,7 +15,7 @@ class App extends Component<PropsWithChildren> {
 
   // this.props.children 是将要会渲染的页面
   render() {
-    return this.props.children
+    return React.createElement(AuthProvider, null, this.props.children)
   }
 }
 

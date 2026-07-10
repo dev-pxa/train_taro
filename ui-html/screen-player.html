@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="zh-CN"><head><script data-od-sandbox-shim="">(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+  document.addEventListener('click', (e) => {
+    if (!e.target || !(e.target instanceof Element)) return;
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (href === null) return;
+    var isAnchor = href.startsWith('#') || href === '';
+    if (isAnchor) {
+      e.preventDefault();
+      if (href === '' || href === '#') {
+        window.scrollTo({ top: 0 });
+        history.replaceState(null, '', ' ');
+      } else {
+        var targetId = href.slice(1);
+        var target = targetId ? document.getElementById(targetId) : null;
+        if (target) {
+          target.scrollIntoView();
+          location.hash === href && history.replaceState(null, '', ' ');
+          location.hash = href;
+        }
+      }
+    } else if (link.getAttribute('target') === '_blank') {
+      e.preventDefault();
+      let safe = false;
+      try {
+        var url = new URL(href, location.href);
+        safe =
+          url.protocol === 'http:' ||
+          url.protocol === 'https:' ||
+          url.protocol === 'mailto:';
+      } catch (_) {}
+      safe && window.open(href, '_blank', 'noopener,noreferrer');
+    }
+  });
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>课程播放 - 企训通</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #4f8ef7;
+            --primary-end: #7c6efc;
+            --primary-gradient: linear-gradient(135deg, #4f8ef7, #7c6efc);
+            --bg: #f8f9fb;
+            --surface: #ffffff;
+            --fg: #1a1a1a;
+            --muted: #8e8e93;
+            --border: #e5e5ea;
+            --text-secondary: #6b7280;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--fg);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 手机框架 */
+        .phone-frame {
+            width: 390px;
+            height: 844px;
+            margin: 0 auto;
+            background: #000;
+            border-radius: 50px;
+            padding: 12px;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 32px;
+            background: #000;
+            border-radius: 0 0 20px 20px;
+            z-index: 100;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 安全区域 */
+        .safe-top {
+            height: 54px;
+        }
+
+        .safe-bottom {
+            height: 34px;
+        }
+
+        /* 播放器区域 */
+        .player-section {
+            position: relative;
+            background: #000;
+            aspect-ratio: 16/9;
+        }
+
+        .player-cover {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.6;
+        }
+
+        /* 返回按钮 */
+        .back-btn {
+            position: absolute;
+            top: 54px;
+            left: 16px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            z-index: 10;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(0, 0, 0, 0.6);
+            transform: scale(1.05);
+        }
+
+        .back-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* 播放按钮 */
+        .play-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+
+        .play-btn {
+            width: 72px;
+            height: 72px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(79, 142, 247, 0.4);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .play-btn svg {
+            width: 28px;
+            height: 28px;
+            margin-left: 3px;
+        }
+
+        /* 进度条区域 */
+        .progress-area {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+        }
+
+        .progress-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time-label {
+            font-size: 11px;
+            color: #fff;
+            font-weight: 500;
+            min-width: 40px;
+        }
+
+        .progress-track {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            width: 57%;
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+
+        .progress-dot {
+            position: absolute;
+            top: -2px;
+            width: 8px;
+            height: 8px;
+            background: #fbbf24;
+            border-radius: 50%;
+        }
+
+        .progress-dot.dot-1 { left: 25%; }
+        .progress-dot.dot-2 { left: 75%; }
+
+        .player-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+        }
+
+        .controls-left {
+            display: flex;
+            gap: 20px;
+        }
+
+        .controls-left svg {
+            width: 24px;
+            height: 24px;
+            color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .controls-left svg:hover {
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .control-pill {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .control-pill:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .controls-right svg {
+            width: 22px;
+            height: 22px;
+            color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .controls-right svg:hover {
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        /* 课程简介 */
+        .course-info {
+            padding: 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .course-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--fg);
+            line-height: 1.4;
+        }
+
+        .course-highlight {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        .course-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .action-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .action-btn.primary {
+            background: var(--primary-gradient);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(79, 142, 247, 0.3);
+        }
+
+        .action-btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(79, 142, 247, 0.4);
+        }
+
+        .action-btn.secondary {
+            background: #fff;
+            color: var(--fg);
+            border: 1.5px solid var(--border);
+        }
+
+        .action-btn.secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* 标签切换 */
+        .tabs-section {
+            display: flex;
+            padding: 0 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+
+        .tab-item {
+            padding: 14px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            position: relative;
+            margin-right: 28px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-item.active {
+            color: var(--fg);
+        }
+
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+
+        .tab-badge {
+            display: inline-block;
+            margin-left: 4px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* 目录列表 */
+        .catalog-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            background: var(--surface);
+        }
+
+        .catalog-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .catalog-item + .catalog-item {
+            border-top: 1px solid var(--border);
+        }
+
+        .catalog-index {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .catalog-item.playing .catalog-index {
+            background: linear-gradient(135deg, rgba(79, 142, 247, 0.12), rgba(124, 110, 252, 0.12));
+            color: var(--primary);
+        }
+
+        .catalog-item.completed .catalog-index {
+            background: var(--bg);
+            color: var(--muted);
+        }
+
+        .catalog-item.locked .catalog-index {
+            background: var(--bg);
+            color: var(--muted);
+        }
+
+        .catalog-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .catalog-name {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .catalog-item.playing .catalog-name {
+            color: var(--primary);
+        }
+
+        .catalog-item.completed .catalog-name,
+        .catalog-item.locked .catalog-name {
+            color: var(--fg);
+        }
+
+        .catalog-meta {
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .catalog-item.playing .catalog-meta {
+            color: var(--primary);
+            opacity: 0.8;
+        }
+
+        .catalog-item.completed .catalog-meta,
+        .catalog-item.locked .catalog-meta {
+            color: var(--muted);
+        }
+
+        .catalog-icon {
+            flex-shrink: 0;
+        }
+
+        .catalog-icon svg {
+            width: 26px;
+            height: 26px;
+        }
+
+        .catalog-item.playing .catalog-icon svg {
+            color: var(--primary);
+        }
+
+        .catalog-item.completed .catalog-icon svg,
+        .catalog-item.locked .catalog-icon svg {
+            color: #d1d5db;
+        }
+
+        /* 隐藏滚动条 */
+        .catalog-section::-webkit-scrollbar {
+            display: none;
+        }
+
+        .catalog-section {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 总览页样式 */
+        body.overview {
+            background: var(--bg);
+            padding: 40px 20px;
+        }
+
+        .overview-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .overview-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .screen-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .screen-nav-btn {
+            padding: 10px 18px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--surface);
+            color: var(--muted);
+        }
+
+        .screen-nav-btn:hover {
+            background: var(--bg);
+        }
+
+        .screen-nav-btn.active {
+            background: var(--primary-gradient);
+            color: #fff;
+        }
+
+        .phone-frame-wrap {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .phone-frame-card {
+            text-align: center;
+        }
+
+        .phone-frame-label {
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* 隐藏总览元素在单页面时 */
+        .phone-frame:not(.overview-mode) .overview-only {
+            display: none;
+        }
+    </style>
+<style data-od-tweaks-bridge-style="">
+[data-od-tweaks-hidden] .tw-panel {
+  transform: translateX(calc(100% + 32px)) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.tw-restore { display: none !important; }
+</style><script data-od-tweaks-bridge="">(function(){
+  // Synchronously hide BEFORE the artifact body parses so the panel never
+  // flashes on initial paint. The host removes the attribute via postMessage
+  // once it knows the desired state.
+  document.documentElement.setAttribute('data-od-tweaks-hidden', '');
+
+  var suppressEcho = false;
+  var observer = null;
+
+  function panelEl(){ return document.querySelector('.tw-panel'); }
+
+  function applyClassesToPanel(visible){
+    var panel = panelEl();
+    if (panel) panel.classList.toggle('tw-hidden', !visible);
+  }
+
+  function setPanelVisible(visible){
+    suppressEcho = true;
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
+    applyClassesToPanel(visible);
+    // Clear flag after the MutationObserver has had a chance to fire for this
+    // change so we don't echo our own host-driven toggles back to the host.
+    Promise.resolve().then(function(){ suppressEcho = false; });
+  }
+
+  function postState(){
+    var panel = panelEl();
+    if (!panel) return;
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-panel-state',
+        visible: !panel.classList.contains('tw-hidden'),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function postAvailability(){
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-available',
+        available: !!panelEl(),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function attachObserver(){
+    var panel = panelEl();
+    if (!panel || observer) return;
+    observer = new MutationObserver(function(){
+      if (suppressEcho) return;
+      postState();
+    });
+    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  function onReady(){
+    // Capture the panel authored visibility BEFORE we apply the host hidden
+    // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
+    // (before the body parses), so on entry to onReady the attribute is
+    // always present even though the artifact may have authored the panel
+    // as default-visible. Reading the panel class first is the only place
+    // we can still observe the author intent. Then drive the attribute,
+    // classes, and posted state from that captured value so a default
+    // visible tw-panel reports visible:true and the toolbar toggle starts
+    // ON. Issue surfaced in PR #1643 review.
+    var panel = panelEl();
+    var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
+    applyClassesToPanel(initialVisible);
+    attachObserver();
+    postAvailability();
+    // Post the captured initial visibility so the toolbar toggle reflects
+    // the default state on mount. Without this the toggle reads OFF while
+    // a default-visible tw-panel artifact clearly shows its panel and the
+    // user would have to click toggle-on then toggle-off to actually hide.
+    postState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+    onReady();
+  }
+
+  window.addEventListener('message', function(ev){
+    if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
+    setPanelVisible(!!ev.data.visible);
+  });
+})();</script></head>
+<body>
+    <div class="phone-frame" data-od-id="path-0">
+        <div class="phone-screen">
+            <!-- 播放器区域 -->
+            <div class="player-section">
+                <img class="player-cover" src="https://modao.cc/agent-py/media/generated_images/2026-03-08/c8fcdf327b224f599ef90bedf159bdad.jpg" alt="课程封面">
+
+                <!-- 返回按钮 -->
+                <a class="back-btn" href="screen-home.html" data-od-id="path-0-0-0-1">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 18l-6-6 6-6"></path>
+                    </svg>
+                </a>
+
+                <!-- 中央播放按钮 -->
+                <div class="play-center">
+                    <div class="play-btn">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 进度条区域 -->
+                <div class="progress-area">
+                    <div class="progress-bar-container">
+                        <span class="time-label">08:45</span>
+                        <div class="progress-track">
+                            <div class="progress-fill"></div>
+                            <div class="progress-dot dot-1"></div>
+                            <div class="progress-dot dot-2"></div>
+                        </div>
+                        <span class="time-label">15:20</span>
+                    </div>
+                    <div class="player-controls">
+                        <div class="controls-left">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"></path>
+                            </svg>
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"></path>
+                            </svg>
+                        </div>
+                        <div class="controls-right">
+                            <span class="control-pill">2.0X</span>
+                            <span class="control-pill">1080P</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 安全区域占位 -->
+            <div class="safe-top" style="display: none;"></div>
+
+            <!-- 课程简介 -->
+            <div class="course-info">
+                <h1 class="course-title" data-od-id="path-0-0-2-0">2026款传感核心组件安装规范</h1>
+                <p class="course-highlight">本节重点：红外传感器的防死角部署与盲点规避。</p>
+                <div class="course-actions">
+                    <button class="action-btn primary" data-od-id="path-0-0-2-2-0">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        离线缓存
+                    </button>
+                    <button class="action-btn secondary" data-od-id="path-0-0-2-2-1">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        分享同事
+                    </button>
+                </div>
+            </div>
+
+            <!-- 标签切换 -->
+            <div class="tabs-section">
+                <div class="tab-item active">课程目录</div>
+                <div class="tab-item">写笔记<span class="tab-badge">(12)</span></div>
+                <div class="tab-item">课堂提问</div>
+            </div>
+
+            <!-- 目录列表 -->
+            <div class="catalog-section">
+                <div class="catalog-item playing">
+                    <div class="catalog-index">01</div>
+                    <div class="catalog-content">
+                        <div class="catalog-name">基础：传感器工作原理</div>
+                        <div class="catalog-meta">正在播放 08:45 / 15:20</div>
+                    </div>
+                    <div class="catalog-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="catalog-item completed">
+                    <div class="catalog-index">02</div>
+                    <div class="catalog-content">
+                        <div class="catalog-name">部署：2026款硬件安装实操</div>
+                        <div class="catalog-meta">时长 12分钟</div>
+                    </div>
+                    <div class="catalog-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M8 12l2.5 2.5 5.5-5.5"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="catalog-item locked">
+                    <div class="catalog-index">03</div>
+                    <div class="catalog-content">
+                        <div class="catalog-name">进阶：多机联动信号补偿</div>
+                        <div class="catalog-meta">时长 18分钟</div>
+                    </div>
+                    <div class="catalog-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签切换
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+            });
+        });
+
+        // 目录项点击
+        document.querySelectorAll('.catalog-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (item.classList.contains('locked')) return;
+
+                document.querySelectorAll('.catalog-item').forEach(i => {
+                    i.classList.remove('playing');
+                    if (!i.classList.contains('locked')) {
+                        i.classList.add('completed');
+                    }
+                });
+                item.classList.remove('completed', 'locked');
+                item.classList.add('playing');
+            });
+        });
+    </script>
+
+<script data-od-snapshot-bridge="">(function(){
+  function copyComputedStyle(source, target){
+    if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
+    var computed = window.getComputedStyle(source);
+    var style = target.getAttribute('style') || '';
+    for (var i = 0; i < computed.length; i++){
+      var prop = computed[i];
+      style += prop + ':' + computed.getPropertyValue(prop) + ';';
+    }
+    target.setAttribute('style', style);
+  }
+  function syncElementState(source, target){
+    var tag = source.tagName ? source.tagName.toLowerCase() : '';
+    if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
+    if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
+    if (tag === 'canvas') {
+      try {
+        var img = document.createElement('img');
+        img.setAttribute('src', source.toDataURL('image/png'));
+        img.setAttribute('style', target.getAttribute('style') || '');
+        target.parentNode && target.parentNode.replaceChild(img, target);
+      } catch (_) {}
+    }
+  }
+  function inlineSnapshotStyles(originalRoot, cloneRoot){
+    copyComputedStyle(originalRoot, cloneRoot);
+    syncElementState(originalRoot, cloneRoot);
+    var originals = originalRoot.querySelectorAll('*');
+    var clones = cloneRoot.querySelectorAll('*');
+    var count = Math.min(originals.length, clones.length);
+    for (var i = 0; i < count; i++){
+      copyComputedStyle(originals[i], clones[i]);
+      syncElementState(originals[i], clones[i]);
+    }
+    var scripts = cloneRoot.querySelectorAll('script');
+    for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
+  }
+  function waitForImages(){
+    var imgs = Array.prototype.slice.call(document.images || []);
+    return Promise.all(imgs.map(function(img){
+      if (img.complete) return Promise.resolve();
+      return new Promise(function(resolve){
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      });
+    }));
+  }
+  function renderSnapshot(id){
+    var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
+    var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+    var dpr = window.devicePixelRatio || 1;
+    var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
+    var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+    var clone = document.documentElement.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    inlineSnapshotStyles(document.documentElement, clone);
+    var serializer = new XMLSerializer();
+    var html = serializer.serializeToString(clone);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+      '<foreignObject x="' + (-window.scrollX || 0) + '" y="' + (-window.scrollY || 0) + '" width="' + docW + '" height="' + docH + '">' +
+      html +
+      '</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.floor(w * dpr));
+        canvas.height = Math.max(1, Math.floor(h * dpr));
+        var ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('no 2d context');
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(img, 0, 0, w, h);
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
+      } catch (err) {
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
+      }
+    };
+    img.onerror = function(){
+      window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:snapshot' || !data.id) return;
+    waitForImages().then(function(){ renderSnapshot(String(data.id)); });
+  });
+})();</script><script data-od-srcdoc-transport-activation="">(function(){
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
+    document.open();
+    document.write(data.html);
+    document.close();
+  });
+})();</script></body></html>

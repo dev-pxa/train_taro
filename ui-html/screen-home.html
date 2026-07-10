@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="zh-CN"><head><script data-od-sandbox-shim="">(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+  document.addEventListener('click', (e) => {
+    if (!e.target || !(e.target instanceof Element)) return;
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (href === null) return;
+    var isAnchor = href.startsWith('#') || href === '';
+    if (isAnchor) {
+      e.preventDefault();
+      if (href === '' || href === '#') {
+        window.scrollTo({ top: 0 });
+        history.replaceState(null, '', ' ');
+      } else {
+        var targetId = href.slice(1);
+        var target = targetId ? document.getElementById(targetId) : null;
+        if (target) {
+          target.scrollIntoView();
+          location.hash === href && history.replaceState(null, '', ' ');
+          location.hash = href;
+        }
+      }
+    } else if (link.getAttribute('target') === '_blank') {
+      e.preventDefault();
+      let safe = false;
+      try {
+        var url = new URL(href, location.href);
+        safe =
+          url.protocol === 'http:' ||
+          url.protocol === 'https:' ||
+          url.protocol === 'mailto:';
+      } catch (_) {}
+      safe && window.open(href, '_blank', 'noopener,noreferrer');
+    }
+  });
+})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>企训通 - 首页</title>
+  <style>
+    :root {
+      --bg: #f8f9fb;
+      --surface: #ffffff;
+      --fg: #1a1a1a;
+      --fg-2: #4b5563;
+      --muted: #667085;
+      --border: #e7e8ee;
+      --accent: #4f8ef7;
+      --accent-2: #7c6efc;
+      --accent-on: #ffffff;
+      --accent-hover: #3a7de6;
+      --accent-active: #2c6ed1;
+      --success: #10b981;
+      --success-soft: rgba(16, 185, 129, 0.1);
+      --warn: #f59e0b;
+      --danger: #ef4444;
+
+      --font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+      --font-body: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+
+      --text-xs: 12px;
+      --text-sm: 14px;
+      --text-base: 16px;
+      --text-lg: 18px;
+      --text-xl: 22px;
+      --text-2xl: 28px;
+      --text-3xl: 36px;
+      --text-4xl: 48px;
+
+      --leading-body: 1.5;
+      --leading-tight: 1.2;
+      --tracking-display: -0.01em;
+
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-12: 48px;
+
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --radius-pill: 9999px;
+
+      --elev-flat: none;
+      --elev-ring: 0 0 0 1px var(--border);
+      --elev-raised: 0 4px 24px rgba(0, 0, 0, 0.06);
+      --elev-soft: 0 2px 12px rgba(0, 0, 0, 0.04);
+
+      --focus-ring: 0 0 0 4px rgba(79, 142, 247, 0.15);
+
+      --gradient-primary: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      --gradient-soft: linear-gradient(135deg, rgba(79, 142, 247, 0.08) 0%, rgba(124, 110, 252, 0.08) 100%);
+      --gradient-hero: linear-gradient(135deg, rgba(79, 142, 247, 0.12) 0%, rgba(124, 110, 252, 0.12) 100%);
+
+      --motion-fast: 150ms;
+      --motion-base: 220ms;
+      --ease-standard: cubic-bezier(0.28, 0, 0.22, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: var(--leading-body);
+      color: var(--fg);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .phone-container {
+      width: 393px;
+      height: 852px;
+      margin: 0 auto;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.15);
+      border-radius: 48px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-status-bar {
+      height: 47px;
+      padding: 12px 28px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: var(--text-sm);
+      font-weight: 600;
+      font-family: var(--font-display);
+      flex-shrink: 0;
+    }
+
+    .phone-notch {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 32px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 10;
+    }
+
+    .phone-content {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .scroll-content {
+      padding: var(--space-5);
+      padding-bottom: 100px;
+    }
+
+    .phone-home-indicator {
+      height: 34px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 8px;
+      flex-shrink: 0;
+      background: var(--surface);
+    }
+
+    .home-indicator-bar {
+      width: 134px;
+      height: 5px;
+      background: var(--fg);
+      border-radius: 100px;
+      opacity: 0.3;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--space-5);
+    }
+
+    .greeting {
+      flex: 1;
+    }
+
+    .greeting-subtitle {
+      font-size: var(--text-sm);
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .user-name {
+      font-family: var(--font-display);
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      letter-spacing: var(--tracking-display);
+    }
+
+    .avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-xl);
+      background: var(--gradient-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: var(--text-lg);
+      box-shadow: 0 8px 24px rgba(79, 142, 247, 0.3);
+    }
+
+    .carousel {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      margin-bottom: var(--space-6);
+    }
+
+    .carousel-track {
+      display: flex;
+      height: 100%;
+      transition: transform 400ms cubic-bezier(0.28, 0, 0.22, 1);
+    }
+
+    .carousel-slide {
+      min-width: 100%;
+      height: 100%;
+      position: relative;
+      padding: var(--space-5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .carousel-slide.slide-1 {
+      background: linear-gradient(135deg, #4f8ef7 0%, #7c6efc 100%);
+    }
+
+    .carousel-slide.slide-2 {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .carousel-slide.slide-3 {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .carousel-content {
+      z-index: 2;
+      color: white;
+    }
+
+    .carousel-label {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.9;
+      margin-bottom: 6px;
+    }
+
+    .carousel-title {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .carousel-subtitle {
+      font-size: var(--text-sm);
+      opacity: 0.9;
+      margin-bottom: var(--space-3);
+    }
+
+    .carousel-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: var(--radius-pill);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: all var(--motion-base) var(--ease-standard);
+    }
+
+    .carousel-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .carousel-graphic {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      opacity: 0.95;
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.15));
+    }
+
+    .carousel-decoration {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .carousel-decoration.circle-1 {
+      width: 120px;
+      height: 120px;
+      top: -40px;
+      right: 20px;
+    }
+
+    .carousel-decoration.circle-2 {
+      width: 80px;
+      height: 80px;
+      bottom: -20px;
+      left: 40px;
+    }
+
+    .carousel-decoration.line {
+      width: 60px;
+      height: 60px;
+      border-radius: var(--radius-lg);
+      background: transparent;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      top: 20px;
+      right: 80px;
+      transform: rotate(45deg);
+    }
+
+    .carousel-dots {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .carousel-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+      transition: all var(--motion-base) var(--ease-standard);
+    }
+
+    .carousel-dot.active {
+      background: white;
+      width: 20px;
+      border-radius: 3px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-4);
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 700;
+    }
+
+    .see-all {
+      font-size: var(--text-sm);
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .course-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+
+    .course-card {
+      background: var(--surface);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      transition: transform var(--motion-base) var(--ease-standard),
+                  box-shadow var(--motion-base) var(--ease-standard);
+      cursor: pointer;
+    }
+
+    .course-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .course-cover-wrapper {
+      position: relative;
+      width: 100%;
+      height: 128px;
+      overflow: hidden;
+    }
+
+    .course-cover {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s var(--ease-standard);
+    }
+
+    .course-card:hover .course-cover {
+      transform: scale(1.05);
+    }
+
+    .course-cover-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.3) 100%);
+    }
+
+    .course-label {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 4px 10px;
+      background: linear-gradient(135deg, rgba(79, 142, 247, 0.95) 0%, rgba(124, 110, 252, 0.95) 100%);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 8px;
+      letter-spacing: 0.2px;
+      box-shadow: 0 2px 8px rgba(79, 142, 247, 0.3);
+    }
+
+    .course-duration {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: white;
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 6px;
+    }
+
+    .course-duration svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .course-info {
+      padding: 14px;
+    }
+
+    .course-title {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--fg);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .tab-bar {
+      position: absolute;
+      bottom: 34px;
+      left: 0;
+      right: 0;
+      height: 84px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: var(--text-xs);
+      transition: color var(--motion-base) var(--ease-standard);
+    }
+
+    .tab-item.active {
+      color: var(--accent);
+    }
+
+    .tab-icon {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .page-nav {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-4);
+      margin-top: var(--space-4);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--border);
+    }
+
+    .nav-btn {
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-pill);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      text-decoration: none;
+      color: var(--fg-2);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: all var(--motion-base) var(--ease-standard);
+    }
+
+    .nav-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .nav-btn.active {
+      background: var(--gradient-soft);
+      color: var(--accent);
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    @media (max-width: 430px) {
+      .phone-container {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+<style data-od-tweaks-bridge-style="">
+[data-od-tweaks-hidden] .tw-panel {
+  transform: translateX(calc(100% + 32px)) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.tw-restore { display: none !important; }
+</style><script data-od-tweaks-bridge="">(function(){
+  // Synchronously hide BEFORE the artifact body parses so the panel never
+  // flashes on initial paint. The host removes the attribute via postMessage
+  // once it knows the desired state.
+  document.documentElement.setAttribute('data-od-tweaks-hidden', '');
+
+  var suppressEcho = false;
+  var observer = null;
+
+  function panelEl(){ return document.querySelector('.tw-panel'); }
+
+  function applyClassesToPanel(visible){
+    var panel = panelEl();
+    if (panel) panel.classList.toggle('tw-hidden', !visible);
+  }
+
+  function setPanelVisible(visible){
+    suppressEcho = true;
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
+    applyClassesToPanel(visible);
+    // Clear flag after the MutationObserver has had a chance to fire for this
+    // change so we don't echo our own host-driven toggles back to the host.
+    Promise.resolve().then(function(){ suppressEcho = false; });
+  }
+
+  function postState(){
+    var panel = panelEl();
+    if (!panel) return;
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-panel-state',
+        visible: !panel.classList.contains('tw-hidden'),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function postAvailability(){
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-available',
+        available: !!panelEl(),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function attachObserver(){
+    var panel = panelEl();
+    if (!panel || observer) return;
+    observer = new MutationObserver(function(){
+      if (suppressEcho) return;
+      postState();
+    });
+    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  function onReady(){
+    // Capture the panel authored visibility BEFORE we apply the host hidden
+    // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
+    // (before the body parses), so on entry to onReady the attribute is
+    // always present even though the artifact may have authored the panel
+    // as default-visible. Reading the panel class first is the only place
+    // we can still observe the author intent. Then drive the attribute,
+    // classes, and posted state from that captured value so a default
+    // visible tw-panel reports visible:true and the toolbar toggle starts
+    // ON. Issue surfaced in PR #1643 review.
+    var panel = panelEl();
+    var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
+    applyClassesToPanel(initialVisible);
+    attachObserver();
+    postAvailability();
+    // Post the captured initial visibility so the toolbar toggle reflects
+    // the default state on mount. Without this the toggle reads OFF while
+    // a default-visible tw-panel artifact clearly shows its panel and the
+    // user would have to click toggle-on then toggle-off to actually hide.
+    postState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+    onReady();
+  }
+
+  window.addEventListener('message', function(ev){
+    if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
+    setPanelVisible(!!ev.data.visible);
+  });
+})();</script></head>
+<body>
+  <div class="phone-container" data-od-id="path-0">
+    <div class="phone-status-bar">
+      <span>9:41</span>
+      <div class="phone-notch"></div>
+      <span>🔋</span>
+    </div>
+
+    <div class="phone-content">
+      <div class="scroll-content">
+        <div class="header">
+          <div class="greeting">
+            <p class="greeting-subtitle">欢迎回来，</p>
+            <h1 class="user-name" data-od-id="path-0-1-0-0-0-1">张小智</h1>
+          </div>
+          <div class="avatar">张</div>
+        </div>
+
+        <div class="carousel" id="carousel" data-od-id="path-0-1-0-1">
+          <div class="carousel-track" id="carouselTrack" data-od-id="path-0-1-0-1-0">
+            <div class="carousel-slide slide-1" data-od-id="path-0-1-0-1-0-0">
+              <div class="carousel-decoration circle-1"></div>
+              <div class="carousel-decoration circle-2"></div>
+              <div class="carousel-decoration line"></div>
+              <div class="carousel-content">
+                <div class="carousel-label">推荐课程</div>
+                <div class="carousel-title">新员工入职培训</div>
+                <div class="carousel-subtitle">快速上手，从这里开始</div>
+                <button class="carousel-btn" data-od-id="path-0-1-0-1-0-0-3-3">
+                  立即学习
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M8 5V19L19 12L8 5Z" fill="currentColor"></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="carousel-graphic">🎓</div>
+            </div>
+            <div class="carousel-slide slide-2" data-od-id="path-0-1-0-1-0-1">
+              <div class="carousel-decoration circle-1"></div>
+              <div class="carousel-decoration circle-2"></div>
+              <div class="carousel-decoration line"></div>
+              <div class="carousel-content">
+                <div class="carousel-label">安全专题</div>
+                <div class="carousel-title">安全管理提升</div>
+                <div class="carousel-subtitle">规范操作，安全第一</div>
+                <button class="carousel-btn" data-od-id="path-0-1-0-1-0-1-3-3">
+                  立即学习
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M8 5V19L19 12L8 5Z" fill="currentColor"></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="carousel-graphic">🛡️</div>
+            </div>
+            <div class="carousel-slide slide-3" data-od-id="path-0-1-0-1-0-2">
+              <div class="carousel-decoration circle-1"></div>
+              <div class="carousel-decoration circle-2"></div>
+              <div class="carousel-decoration line"></div>
+              <div class="carousel-content">
+                <div class="carousel-label">进阶提升</div>
+                <div class="carousel-title">领导力发展</div>
+                <div class="carousel-subtitle">管理能力全面升级</div>
+                <button class="carousel-btn" data-od-id="path-0-1-0-1-0-2-3-3">
+                  立即学习
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M8 5V19L19 12L8 5Z" fill="currentColor"></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="carousel-graphic">🚀</div>
+            </div>
+          </div>
+          <div class="carousel-dots" id="carouselDots" data-od-id="path-0-1-0-1-1">
+            <div class="carousel-dot active" data-index="0" data-od-id="path-0-1-0-1-1-0"></div>
+            <div class="carousel-dot" data-index="1" data-od-id="path-0-1-0-1-1-1"></div>
+            <div class="carousel-dot" data-index="2" data-od-id="path-0-1-0-1-1-2"></div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h2 class="section-title" data-od-id="path-0-1-0-2-0">岗位必修（安装岗）</h2>
+          <a href="#" class="see-all" data-od-id="path-0-1-0-2-1">查看全部</a>
+        </div>
+
+        <div class="course-grid" id="courseGrid" data-od-id="path-0-1-0-3">
+        </div>
+
+        <div class="section-header">
+          <h2 class="section-title" data-od-id="path-0-1-0-4-0">专业证书</h2>
+          <a href="#" class="see-all" data-od-id="path-0-1-0-4-1">查看全部</a>
+        </div>
+
+        <div class="course-grid" id="certGrid" data-od-id="path-0-1-0-5">
+        </div>
+
+        <div class="page-nav">
+          <a href="screen-login.html" class="nav-btn" data-od-id="path-0-1-0-6-0">登录</a>
+          <a href="screen-home.html" class="nav-btn active" data-od-id="path-0-1-0-6-1">首页</a>
+          <a href="screen-profile.html" class="nav-btn" data-od-id="path-0-1-0-6-2">我的</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a href="screen-home.html" class="tab-item active" data-od-id="path-0-2-0">
+        <div class="tab-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </div>
+        <span>首页</span>
+      </a>
+      <a href="#" class="tab-item" data-od-id="path-0-2-1">
+        <div class="tab-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 6.25278C9.82457 4.91889 7.20727 4.19971 4.5 4.33334V20C7.17519 20.2843 9.79729 21.1078 12 22.5C14.2027 21.1078 16.8248 20.2843 19.5 20V4.33334C16.7927 4.19971 14.1754 4.91889 12 6.25278Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </div>
+        <span>学习</span>
+      </a>
+      <a href="#" class="tab-item" data-od-id="path-0-2-2">
+        <div class="tab-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </div>
+        <span>考试</span>
+      </a>
+      <a href="screen-profile.html" class="tab-item" data-od-id="path-0-2-3">
+        <div class="tab-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </div>
+        <span>我的</span>
+      </a>
+    </div>
+
+    <div class="phone-home-indicator">
+      <div class="home-indicator-bar"></div>
+    </div>
+  </div>
+
+  <script>
+    // 课程数据
+    const courses = [
+      {
+        id: "course_001",
+        title: "智能家居系统工程师认证",
+        coverImage: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600",
+        type: "series",
+        duration: "12课时",
+        label: "热门精选"
+      },
+      {
+        id: "course_002",
+        title: "工业网关部署规范",
+        coverImage: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600",
+        type: "series",
+        duration: "8课时",
+        label: "新课上架"
+      },
+      {
+        id: "course_003",
+        title: "智能照明快速入门",
+        coverImage: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600",
+        type: "micro",
+        duration: "15分钟",
+        label: "热门精选"
+      },
+      {
+        id: "course_004",
+        title: "云端协同方案实操",
+        coverImage: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600",
+        type: "series",
+        duration: "6课时",
+        label: "认证课程"
+      },
+      {
+        id: "course_005",
+        title: "安全管理规范",
+        coverImage: "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600",
+        type: "micro",
+        duration: "20分钟",
+        label: "新课上架"
+      },
+      {
+        id: "course_006",
+        title: "智能家居系统集成师",
+        coverImage: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600",
+        type: "series",
+        duration: "10课时",
+        label: "认证课程"
+      }
+    ];
+
+    // 生成课程卡片HTML
+    function createCourseCard(course) {
+      const durationIcon = course.type === 'series'
+        ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+             <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+             <path d="M6.5 2H20V22H6.5A2.5 2.5 0 0 0 4 19.5V4.5A2.5 2.5 0 0 1 6.5 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+           </svg>`
+        : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+             <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+           </svg>`;
+
+      return `
+        <div class="course-card" data-id="${course.id}">
+          <div class="course-cover-wrapper">
+            <img class="course-cover" src="${course.coverImage}" alt="${course.title}" />
+            <div class="course-cover-overlay"></div>
+            <span class="course-label">${course.label}</span>
+            <div class="course-duration">
+              ${durationIcon}
+              <span>${course.duration}</span>
+            </div>
+          </div>
+          <div class="course-info">
+            <h3 class="course-title">${course.title}</h3>
+          </div>
+        </div>
+      `;
+    }
+
+    // 渲染课程列表
+    function renderCourses() {
+      const courseGrid = document.getElementById('courseGrid');
+      const certGrid = document.getElementById('certGrid');
+
+      if (courseGrid) {
+        // 前3个课程放岗位必修
+        const jobCourses = courses.slice(0, 3);
+        courseGrid.innerHTML = jobCourses.map(createCourseCard).join('');
+      }
+
+      if (certGrid) {
+        // 后3个课程放专业证书
+        const certCourses = courses.slice(3, 6);
+        certGrid.innerHTML = certCourses.map(createCourseCard).join('');
+      }
+    }
+
+    // 轮播图功能
+    document.addEventListener('DOMContentLoaded', function() {
+      const carousel = document.getElementById('carousel');
+      const track = document.getElementById('carouselTrack');
+      const dots = document.querySelectorAll('.carousel-dot');
+      let currentIndex = 0;
+      let autoPlayInterval;
+
+      function goToSlide(index) {
+        if (index < 0) index = 2;
+        if (index > 2) index = 0;
+        currentIndex = index;
+        if (track) {
+          track.style.transform = `translateX(-${index * 100}%)`;
+        }
+        updateDots();
+      }
+
+      function updateDots() {
+        dots.forEach((dot, index) => {
+          dot.classList.toggle('active', index === currentIndex);
+        });
+      }
+
+      function nextSlide() {
+        goToSlide(currentIndex + 1);
+      }
+
+      function startAutoPlay() {
+        autoPlayInterval = setInterval(nextSlide, 3500);
+      }
+
+      function stopAutoPlay() {
+        clearInterval(autoPlayInterval);
+      }
+
+      dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+          goToSlide(index);
+          stopAutoPlay();
+          startAutoPlay();
+        });
+      });
+
+      if (carousel) {
+        carousel.addEventListener('mouseenter', stopAutoPlay);
+        carousel.addEventListener('mouseleave', startAutoPlay);
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        carousel.addEventListener('touchstart', (e) => {
+          touchStartX = e.changedTouches[0].screenX;
+          stopAutoPlay();
+        }, { passive: true });
+
+        carousel.addEventListener('touchend', (e) => {
+          touchEndX = e.changedTouches[0].screenX;
+          const diff = touchStartX - touchEndX;
+          if (Math.abs(diff) > 50) {
+            if (diff > 0) {
+              goToSlide(currentIndex + 1);
+            } else {
+              goToSlide(currentIndex - 1);
+            }
+          }
+          startAutoPlay();
+        }, { passive: true });
+      }
+
+      startAutoPlay();
+      renderCourses();
+    });
+  </script>
+
+
+<script data-od-snapshot-bridge="">(function(){
+  function copyComputedStyle(source, target){
+    if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
+    var computed = window.getComputedStyle(source);
+    var style = target.getAttribute('style') || '';
+    for (var i = 0; i < computed.length; i++){
+      var prop = computed[i];
+      style += prop + ':' + computed.getPropertyValue(prop) + ';';
+    }
+    target.setAttribute('style', style);
+  }
+  function syncElementState(source, target){
+    var tag = source.tagName ? source.tagName.toLowerCase() : '';
+    if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
+    if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
+    if (tag === 'canvas') {
+      try {
+        var img = document.createElement('img');
+        img.setAttribute('src', source.toDataURL('image/png'));
+        img.setAttribute('style', target.getAttribute('style') || '');
+        target.parentNode && target.parentNode.replaceChild(img, target);
+      } catch (_) {}
+    }
+  }
+  function inlineSnapshotStyles(originalRoot, cloneRoot){
+    copyComputedStyle(originalRoot, cloneRoot);
+    syncElementState(originalRoot, cloneRoot);
+    var originals = originalRoot.querySelectorAll('*');
+    var clones = cloneRoot.querySelectorAll('*');
+    var count = Math.min(originals.length, clones.length);
+    for (var i = 0; i < count; i++){
+      copyComputedStyle(originals[i], clones[i]);
+      syncElementState(originals[i], clones[i]);
+    }
+    var scripts = cloneRoot.querySelectorAll('script');
+    for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
+  }
+  function waitForImages(){
+    var imgs = Array.prototype.slice.call(document.images || []);
+    return Promise.all(imgs.map(function(img){
+      if (img.complete) return Promise.resolve();
+      return new Promise(function(resolve){
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      });
+    }));
+  }
+  function renderSnapshot(id){
+    var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
+    var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+    var dpr = window.devicePixelRatio || 1;
+    var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
+    var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+    var clone = document.documentElement.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    inlineSnapshotStyles(document.documentElement, clone);
+    var serializer = new XMLSerializer();
+    var html = serializer.serializeToString(clone);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+      '<foreignObject x="' + (-window.scrollX || 0) + '" y="' + (-window.scrollY || 0) + '" width="' + docW + '" height="' + docH + '">' +
+      html +
+      '</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.floor(w * dpr));
+        canvas.height = Math.max(1, Math.floor(h * dpr));
+        var ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('no 2d context');
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(img, 0, 0, w, h);
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
+      } catch (err) {
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
+      }
+    };
+    img.onerror = function(){
+      window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:snapshot' || !data.id) return;
+    waitForImages().then(function(){ renderSnapshot(String(data.id)); });
+  });
+})();</script><script data-od-srcdoc-transport-activation="">(function(){
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
+    document.open();
+    document.write(data.html);
+    document.close();
+  });
+})();</script></body></html>

@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="zh-CN"><head><script data-od-sandbox-shim="">(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+  document.addEventListener('click', (e) => {
+    if (!e.target || !(e.target instanceof Element)) return;
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (href === null) return;
+    var isAnchor = href.startsWith('#') || href === '';
+    if (isAnchor) {
+      e.preventDefault();
+      if (href === '' || href === '#') {
+        window.scrollTo({ top: 0 });
+        history.replaceState(null, '', ' ');
+      } else {
+        var targetId = href.slice(1);
+        var target = targetId ? document.getElementById(targetId) : null;
+        if (target) {
+          target.scrollIntoView();
+          location.hash === href && history.replaceState(null, '', ' ');
+          location.hash = href;
+        }
+      }
+    } else if (link.getAttribute('target') === '_blank') {
+      e.preventDefault();
+      let safe = false;
+      try {
+        var url = new URL(href, location.href);
+        safe =
+          url.protocol === 'http:' ||
+          url.protocol === 'https:' ||
+          url.protocol === 'mailto:';
+      } catch (_) {}
+      safe && window.open(href, '_blank', 'noopener,noreferrer');
+    }
+  });
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>企训通 - 证书详情</title>
+    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-start: #4f8ef7;
+            --primary-end: #7c6efc;
+            --bg: #f8f9fb;
+            --surface: #ffffff;
+            --fg: #1a1a2e;
+            --muted: #8a8a9a;
+            --border: #e8e8f0;
+            --success: #14c9a5;
+            --gold: #d9a441;
+            --gold-soft: #fff7e5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'SF Pro Text', system-ui, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        button {
+            font: inherit;
+            border: 0;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background: var(--bg);
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-bar {
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            background: var(--surface);
+        }
+
+        .status-time {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--fg);
+        }
+
+        .status-icons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .header {
+            padding: 8px 20px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface);
+        }
+
+        .page-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--fg);
+        }
+
+        .back-btn,
+        .ghost-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--bg);
+            color: var(--fg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .toast {
+            position: absolute;
+            left: 50%;
+            top: 96px;
+            z-index: 20;
+            transform: translate(-50%, -8px);
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: rgba(26, 26, 46, 0.9);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px 20px 20px;
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+            color: white;
+            border-radius: 26px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 16px 34px rgba(79, 142, 247, 0.26);
+        }
+
+        .status-card::after {
+            content: '';
+            position: absolute;
+            width: 132px;
+            height: 132px;
+            right: -50px;
+            top: -48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        .status-pill {
+            position: relative;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 11px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.18);
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .cert-name {
+            position: relative;
+            z-index: 1;
+            font-size: 21px;
+            line-height: 1.25;
+            font-weight: 850;
+            margin-bottom: 8px;
+        }
+
+        .cert-desc {
+            position: relative;
+            z-index: 1;
+            font-size: 13px;
+            line-height: 1.6;
+            opacity: 0.92;
+            max-width: 270px;
+        }
+
+        .certificate-wrap {
+            margin-top: 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 14px;
+        }
+
+        .certificate-image {
+            aspect-ratio: 4 / 3;
+            width: 100%;
+            border-radius: 18px;
+            border: 1px solid rgba(217, 164, 65, 0.38);
+            background:
+                radial-gradient(circle at 18% 20%, rgba(217, 164, 65, 0.16), transparent 24%),
+                radial-gradient(circle at 88% 18%, rgba(124, 110, 252, 0.12), transparent 26%),
+                linear-gradient(135deg, #fffdf7, #fff7e5);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .certificate-image::before,
+        .certificate-image::after {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            border: 1px solid rgba(217, 164, 65, 0.5);
+            border-radius: 13px;
+            pointer-events: none;
+        }
+
+        .certificate-image::after {
+            inset: 16px;
+            border-style: dashed;
+            opacity: 0.55;
+        }
+
+        .cert-inner {
+            position: absolute;
+            inset: 26px 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            color: #6f5420;
+        }
+
+        .cert-kicker {
+            font-size: 9px;
+            letter-spacing: 0.18em;
+            font-weight: 800;
+            color: #a47a25;
+            margin-bottom: 8px;
+        }
+
+        .cert-title {
+            font-size: 25px;
+            line-height: 1;
+            font-weight: 900;
+            color: #7a5820;
+            margin-bottom: 10px;
+        }
+
+        .cert-line {
+            width: 76px;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin-bottom: 10px;
+        }
+
+        .cert-owner {
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--fg);
+            margin-bottom: 7px;
+        }
+
+        .cert-copy {
+            font-size: 10px;
+            line-height: 1.55;
+            color: #7d6b4d;
+            max-width: 228px;
+        }
+
+        .cert-footer {
+            margin-top: auto;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 12px;
+        }
+
+        .cert-no {
+            text-align: left;
+            font-size: 8px;
+            line-height: 1.5;
+            color: #92784c;
+            font-family: ui-monospace, 'JetBrains Mono', monospace;
+        }
+
+        .stamp {
+            width: 48px;
+            height: 48px;
+            border: 2px solid rgba(217, 90, 90, 0.7);
+            border-radius: 50%;
+            color: rgba(217, 90, 90, 0.78);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 900;
+            transform: rotate(-12deg);
+        }
+
+        .preview-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .section-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 18px;
+            margin-top: 14px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 850;
+            color: var(--fg);
+            margin-bottom: 14px;
+        }
+
+        .info-list {
+            display: grid;
+            gap: 13px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-row:last-child {
+            padding-bottom: 0;
+            border-bottom: 0;
+        }
+
+        .info-label {
+            flex-shrink: 0;
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 650;
+        }
+
+        .info-value {
+            text-align: right;
+            font-size: 13px;
+            color: var(--fg);
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        .note-list {
+            display: grid;
+            gap: 10px;
+            padding-left: 18px;
+            list-style: disc;
+        }
+
+        .note-item {
+            font-size: 12px;
+            line-height: 1.55;
+            color: var(--muted);
+            font-weight: 650;
+        }
+
+        .note-item::marker {
+            color: var(--primary-start);
+            font-size: 13px;
+        }
+
+        .bottom {
+            padding: 14px 20px 24px;
+            display: flex;
+            gap: 12px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            flex: 1;
+            height: 52px;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--fg);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+            color: white;
+            box-shadow: 0 8px 24px rgba(79, 142, 247, 0.32);
+        }
+
+        .home-indicator {
+            height: 8px;
+            background: var(--surface);
+            display: flex;
+            justify-content: center;
+            padding-bottom: 4px;
+        }
+
+        .home-indicator::after {
+            content: '';
+            width: 134px;
+            height: 5px;
+            background: #c8c7cc;
+            border-radius: 100px;
+        }
+    </style>
+<style data-od-tweaks-bridge-style="">
+[data-od-tweaks-hidden] .tw-panel {
+  transform: translateX(calc(100% + 32px)) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.tw-restore { display: none !important; }
+</style><script data-od-tweaks-bridge="">(function(){
+  // Synchronously hide BEFORE the artifact body parses so the panel never
+  // flashes on initial paint. The host removes the attribute via postMessage
+  // once it knows the desired state.
+  document.documentElement.setAttribute('data-od-tweaks-hidden', '');
+
+  var suppressEcho = false;
+  var observer = null;
+
+  function panelEl(){ return document.querySelector('.tw-panel'); }
+
+  function applyClassesToPanel(visible){
+    var panel = panelEl();
+    if (panel) panel.classList.toggle('tw-hidden', !visible);
+  }
+
+  function setPanelVisible(visible){
+    suppressEcho = true;
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
+    applyClassesToPanel(visible);
+    // Clear flag after the MutationObserver has had a chance to fire for this
+    // change so we don't echo our own host-driven toggles back to the host.
+    Promise.resolve().then(function(){ suppressEcho = false; });
+  }
+
+  function postState(){
+    var panel = panelEl();
+    if (!panel) return;
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-panel-state',
+        visible: !panel.classList.contains('tw-hidden'),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function postAvailability(){
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-available',
+        available: !!panelEl(),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function attachObserver(){
+    var panel = panelEl();
+    if (!panel || observer) return;
+    observer = new MutationObserver(function(){
+      if (suppressEcho) return;
+      postState();
+    });
+    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  function onReady(){
+    // Capture the panel authored visibility BEFORE we apply the host hidden
+    // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
+    // (before the body parses), so on entry to onReady the attribute is
+    // always present even though the artifact may have authored the panel
+    // as default-visible. Reading the panel class first is the only place
+    // we can still observe the author intent. Then drive the attribute,
+    // classes, and posted state from that captured value so a default
+    // visible tw-panel reports visible:true and the toolbar toggle starts
+    // ON. Issue surfaced in PR #1643 review.
+    var panel = panelEl();
+    var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
+    applyClassesToPanel(initialVisible);
+    attachObserver();
+    postAvailability();
+    // Post the captured initial visibility so the toolbar toggle reflects
+    // the default state on mount. Without this the toggle reads OFF while
+    // a default-visible tw-panel artifact clearly shows its panel and the
+    // user would have to click toggle-on then toggle-off to actually hide.
+    postState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+    onReady();
+  }
+
+  window.addEventListener('message', function(ev){
+    if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
+    setPanelVisible(!!ev.data.visible);
+  });
+})();</script></head>
+<body>
+    <div class="phone-frame" data-od-id="path-0">
+        <div class="status-bar">
+            <div class="status-time">9:41</div>
+            <div class="status-icons">
+                <span class="iconify" data-icon="solar:signal-linear"></span>
+                <span class="iconify" data-icon="solar:wifi-linear"></span>
+                <span class="iconify" data-icon="solar:battery-full-linear"></span>
+            </div>
+        </div>
+
+        <div class="header">
+            <button class="back-btn" type="button" aria-label="返回成绩" onclick="window.location.href='screen-exam-result.html'" data-od-id="path-0-1-0">
+                <span class="iconify" data-icon="solar:alt-arrow-left-linear" style="font-size: 22px;"></span>
+            </button>
+            <div class="page-title">证书详情</div>
+            <button class="ghost-btn" type="button" aria-label="证书说明" id="helpBtn" data-od-id="path-0-1-2">
+                <span class="iconify" data-icon="solar:question-circle-linear" style="font-size: 20px;"></span>
+            </button>
+        </div>
+
+        <div class="toast" id="toast" data-od-id="path-0-2">证书已开始下载</div>
+
+        <main class="content" data-od-id="path-0-3">
+            <section class="status-card" aria-labelledby="certificateTitle" data-od-id="path-0-3-0">
+                <div class="status-pill" data-od-id="path-0-3-0-0">
+                    <span class="iconify" data-icon="solar:verified-check-bold"></span>
+                    已获得证书
+                </div>
+                <h1 class="cert-name" id="certificateTitle" data-od-id="path-0-3-0-1">智能家居安装与调试能力认证</h1>
+                <p class="cert-desc">你已通过本次考试，证书可下载保存，并同步到个人培训档案。</p>
+            </section>
+
+            <section class="certificate-wrap" aria-label="证书预览" data-od-id="path-0-3-1">
+                <button class="certificate-image" type="button" id="previewBtn" aria-label="查看证书大图" data-od-id="path-0-3-1-0">
+                    <div class="cert-inner" data-od-id="path-0-3-1-0-0">
+                        <div class="cert-kicker">QIXUNTONG CERTIFICATE</div>
+                        <div class="cert-title">能力认证证书</div>
+                        <div class="cert-line"></div>
+                        <div class="cert-owner">张明</div>
+                        <p class="cert-copy">已完成智能家居安装与调试能力认证考试，并达到企训通培训中心认证通过标准。</p>
+                        <div class="cert-footer">
+                            <div class="cert-no">
+                                编号 QXT-SH-20260528-0086<br>
+                                颁发日期 2026.05.28
+                            </div>
+                            <div class="stamp">企训通<br>认证</div>
+                        </div>
+                    </div>
+                </button>
+                <div class="preview-hint" data-od-id="path-0-3-1-1">
+                    <span class="iconify" data-icon="solar:magnifer-zoom-in-linear"></span>
+                    点击证书可查看大图
+                </div>
+            </section>
+
+            <section class="section-card" aria-labelledby="infoTitle" data-od-id="path-0-3-2">
+                <h2 class="section-title" id="infoTitle" data-od-id="path-0-3-2-0">证书信息</h2>
+                <div class="info-list" data-od-id="path-0-3-2-1">
+                    <div class="info-row">
+                        <div class="info-label">获证人</div>
+                        <div class="info-value">张明</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">考试成绩</div>
+                        <div class="info-value">86 分</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">通过时间</div>
+                        <div class="info-value">2026.05.28 17:42</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">证书编号</div>
+                        <div class="info-value">QXT-SH-20260528-0086</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">发证机构</div>
+                        <div class="info-value">企训通培训中心</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-card" aria-labelledby="noteTitle" data-od-id="path-0-3-3">
+                <h2 class="section-title" id="noteTitle" data-od-id="path-0-3-3-0">使用说明</h2>
+                <ul class="note-list">
+                    <li class="note-item">
+                        <p>证书可用于企业内部培训记录、岗位能力证明与项目服务资质展示。</p>
+                    </li>
+                    <li class="note-item">
+                        <p>如证书信息有误，请联系培训管理员核对后重新生成。</p>
+                    </li>
+                </ul>
+            </section>
+        </main>
+
+        <div class="bottom">
+            <button class="btn btn-primary" type="button" id="downloadBtn" data-od-id="path-0-4-0">
+                <span class="iconify" data-icon="solar:download-minimalistic-bold"></span>
+                下载证书
+            </button>
+            <button class="btn btn-secondary" type="button" id="shareBtn" data-od-id="path-0-4-1">
+                <span class="iconify" data-icon="solar:share-linear"></span>
+                分享证书
+            </button>
+        </div>
+
+        <div class="home-indicator"></div>
+    </div>
+
+    <script>
+        const toast = document.getElementById('toast');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const previewBtn = document.getElementById('previewBtn');
+        const helpBtn = document.getElementById('helpBtn');
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            window.clearTimeout(window.certificateToastTimer);
+            window.certificateToastTimer = window.setTimeout(() => {
+                toast.classList.remove('show');
+            }, 1600);
+        }
+
+        downloadBtn.addEventListener('click', () => showToast('证书已开始下载'));
+        shareBtn.addEventListener('click', () => showToast('证书分享卡已生成'));
+        previewBtn.addEventListener('click', () => showToast('已打开证书大图预览'));
+        helpBtn.addEventListener('click', () => showToast('证书信息来自本次考试记录'));
+    </script>
+
+
+<script data-od-snapshot-bridge="">(function(){
+  function copyComputedStyle(source, target){
+    if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
+    var computed = window.getComputedStyle(source);
+    var style = target.getAttribute('style') || '';
+    for (var i = 0; i < computed.length; i++){
+      var prop = computed[i];
+      style += prop + ':' + computed.getPropertyValue(prop) + ';';
+    }
+    target.setAttribute('style', style);
+  }
+  function syncElementState(source, target){
+    var tag = source.tagName ? source.tagName.toLowerCase() : '';
+    if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
+    if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
+    if (tag === 'canvas') {
+      try {
+        var img = document.createElement('img');
+        img.setAttribute('src', source.toDataURL('image/png'));
+        img.setAttribute('style', target.getAttribute('style') || '');
+        target.parentNode && target.parentNode.replaceChild(img, target);
+      } catch (_) {}
+    }
+  }
+  function inlineSnapshotStyles(originalRoot, cloneRoot){
+    copyComputedStyle(originalRoot, cloneRoot);
+    syncElementState(originalRoot, cloneRoot);
+    var originals = originalRoot.querySelectorAll('*');
+    var clones = cloneRoot.querySelectorAll('*');
+    var count = Math.min(originals.length, clones.length);
+    for (var i = 0; i < count; i++){
+      copyComputedStyle(originals[i], clones[i]);
+      syncElementState(originals[i], clones[i]);
+    }
+    var scripts = cloneRoot.querySelectorAll('script');
+    for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
+  }
+  function waitForImages(){
+    var imgs = Array.prototype.slice.call(document.images || []);
+    return Promise.all(imgs.map(function(img){
+      if (img.complete) return Promise.resolve();
+      return new Promise(function(resolve){
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      });
+    }));
+  }
+  function renderSnapshot(id){
+    var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
+    var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+    var dpr = window.devicePixelRatio || 1;
+    var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
+    var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+    var clone = document.documentElement.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    inlineSnapshotStyles(document.documentElement, clone);
+    var serializer = new XMLSerializer();
+    var html = serializer.serializeToString(clone);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+      '<foreignObject x="' + (-window.scrollX || 0) + '" y="' + (-window.scrollY || 0) + '" width="' + docW + '" height="' + docH + '">' +
+      html +
+      '</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.floor(w * dpr));
+        canvas.height = Math.max(1, Math.floor(h * dpr));
+        var ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('no 2d context');
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(img, 0, 0, w, h);
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
+      } catch (err) {
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
+      }
+    };
+    img.onerror = function(){
+      window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:snapshot' || !data.id) return;
+    waitForImages().then(function(){ renderSnapshot(String(data.id)); });
+  });
+})();</script><script data-od-srcdoc-transport-activation="">(function(){
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
+    document.open();
+    document.write(data.html);
+    document.close();
+  });
+})();</script></body></html>

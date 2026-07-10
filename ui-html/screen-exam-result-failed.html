@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="zh-CN"><head><script data-od-sandbox-shim="">(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+  document.addEventListener('click', (e) => {
+    if (!e.target || !(e.target instanceof Element)) return;
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (href === null) return;
+    var isAnchor = href.startsWith('#') || href === '';
+    if (isAnchor) {
+      e.preventDefault();
+      if (href === '' || href === '#') {
+        window.scrollTo({ top: 0 });
+        history.replaceState(null, '', ' ');
+      } else {
+        var targetId = href.slice(1);
+        var target = targetId ? document.getElementById(targetId) : null;
+        if (target) {
+          target.scrollIntoView();
+          location.hash === href && history.replaceState(null, '', ' ');
+          location.hash = href;
+        }
+      }
+    } else if (link.getAttribute('target') === '_blank') {
+      e.preventDefault();
+      let safe = false;
+      try {
+        var url = new URL(href, location.href);
+        safe =
+          url.protocol === 'http:' ||
+          url.protocol === 'https:' ||
+          url.protocol === 'mailto:';
+      } catch (_) {}
+      safe && window.open(href, '_blank', 'noopener,noreferrer');
+    }
+  });
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>企训通 - 考试未通过</title>
+    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-start: #4f8ef7;
+            --primary-end: #7c6efc;
+            --bg: #f8f9fb;
+            --surface: #ffffff;
+            --fg: #1a1a2e;
+            --muted: #8a8a9a;
+            --border: #e8e8f0;
+            --danger: #ff5a5a;
+            --warning: #ffb020;
+            --success: #14c9a5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'SF Pro Text', system-ui, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        button {
+            font: inherit;
+            border: 0;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background: var(--bg);
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-bar {
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            background: var(--surface);
+        }
+
+        .status-time {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--fg);
+        }
+
+        .status-icons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .header {
+            padding: 8px 20px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface);
+        }
+
+        .page-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--fg);
+        }
+
+        .close-btn,
+        .share-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--bg);
+            color: var(--fg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .toast {
+            position: absolute;
+            left: 50%;
+            top: 96px;
+            z-index: 10;
+            transform: translate(-50%, -8px);
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: rgba(26, 26, 46, 0.9);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px 20px 20px;
+        }
+
+        .result-hero {
+            position: relative;
+            background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+            color: white;
+            border-radius: 28px;
+            padding: 24px 22px 22px;
+            overflow: hidden;
+            box-shadow: 0 18px 36px rgba(79, 142, 247, 0.28);
+        }
+
+        .result-hero.failed {
+            background: linear-gradient(135deg, #ff8a4c, #ff5a7a);
+            box-shadow: 0 18px 36px rgba(255, 90, 90, 0.22);
+        }
+
+        .result-hero::after {
+            content: '';
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            right: -52px;
+            top: -46px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        .result-status {
+            position: relative;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 11px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.18);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        .result-status.failed {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .score-row {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .score {
+            font-size: 64px;
+            line-height: 0.95;
+            font-weight: 800;
+            letter-spacing: -2px;
+        }
+
+        .score-unit {
+            font-size: 18px;
+            font-weight: 700;
+            padding-bottom: 8px;
+        }
+
+        .result-title {
+            position: relative;
+            z-index: 1;
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 7px;
+        }
+
+        .result-desc {
+            position: relative;
+            z-index: 1;
+            font-size: 13px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .gap-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .gap-item {
+            display: flex;
+            gap: 12px;
+            padding: 13px;
+            border-radius: 16px;
+            background: var(--bg);
+        }
+
+        .gap-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            background: rgba(255, 176, 32, 0.14);
+            color: var(--warning);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .gap-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--fg);
+            margin-bottom: 4px;
+        }
+
+        .gap-desc {
+            font-size: 11px;
+            line-height: 1.5;
+            color: var(--muted);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 14px 0;
+        }
+
+        .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 14px 10px;
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--fg);
+            margin-bottom: 4px;
+        }
+
+        .summary-label {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .section-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 18px;
+            margin-top: 14px;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--fg);
+        }
+
+        .section-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-start);
+            text-decoration: none;
+        }
+
+        .type-row {
+            display: grid;
+            grid-template-columns: 72px 1fr 42px;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .type-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .type-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--fg);
+        }
+
+        .bar {
+            height: 8px;
+            border-radius: 999px;
+            background: var(--bg);
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+        }
+
+        .type-score {
+            text-align: right;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--fg);
+        }
+
+        .review-item {
+            display: flex;
+            gap: 12px;
+            padding: 13px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .review-item:first-of-type {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        .review-index {
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+            background: rgba(255, 90, 90, 0.08);
+            color: var(--danger);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .review-copy {
+            flex: 1;
+        }
+
+        .review-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--fg);
+            margin-bottom: 4px;
+        }
+
+        .review-meta {
+            font-size: 11px;
+            line-height: 1.5;
+            color: var(--muted);
+        }
+
+        .certificate {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(20, 201, 165, 0.1), rgba(79, 142, 247, 0.06));
+            border: 1px solid rgba(20, 201, 165, 0.18);
+            border-radius: 18px;
+            padding: 14px;
+        }
+
+        .certificate-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: var(--success);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .certificate-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--fg);
+            margin-bottom: 4px;
+        }
+
+        .certificate-desc {
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--muted);
+        }
+
+        .bottom {
+            padding: 14px 20px 24px;
+            display: flex;
+            gap: 12px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            flex: 1;
+            height: 52px;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--fg);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+            color: white;
+            box-shadow: 0 8px 24px rgba(79, 142, 247, 0.32);
+        }
+
+        .home-indicator {
+            height: 8px;
+            background: var(--surface);
+            display: flex;
+            justify-content: center;
+            padding-bottom: 4px;
+        }
+
+        .home-indicator::after {
+            content: '';
+            width: 134px;
+            height: 5px;
+            background: #c8c7cc;
+            border-radius: 100px;
+        }
+    </style>
+<style data-od-tweaks-bridge-style="">
+[data-od-tweaks-hidden] .tw-panel {
+  transform: translateX(calc(100% + 32px)) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.tw-restore { display: none !important; }
+</style><script data-od-tweaks-bridge="">(function(){
+  // Synchronously hide BEFORE the artifact body parses so the panel never
+  // flashes on initial paint. The host removes the attribute via postMessage
+  // once it knows the desired state.
+  document.documentElement.setAttribute('data-od-tweaks-hidden', '');
+
+  var suppressEcho = false;
+  var observer = null;
+
+  function panelEl(){ return document.querySelector('.tw-panel'); }
+
+  function applyClassesToPanel(visible){
+    var panel = panelEl();
+    if (panel) panel.classList.toggle('tw-hidden', !visible);
+  }
+
+  function setPanelVisible(visible){
+    suppressEcho = true;
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
+    applyClassesToPanel(visible);
+    // Clear flag after the MutationObserver has had a chance to fire for this
+    // change so we don't echo our own host-driven toggles back to the host.
+    Promise.resolve().then(function(){ suppressEcho = false; });
+  }
+
+  function postState(){
+    var panel = panelEl();
+    if (!panel) return;
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-panel-state',
+        visible: !panel.classList.contains('tw-hidden'),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function postAvailability(){
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-available',
+        available: !!panelEl(),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function attachObserver(){
+    var panel = panelEl();
+    if (!panel || observer) return;
+    observer = new MutationObserver(function(){
+      if (suppressEcho) return;
+      postState();
+    });
+    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  function onReady(){
+    // Capture the panel authored visibility BEFORE we apply the host hidden
+    // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
+    // (before the body parses), so on entry to onReady the attribute is
+    // always present even though the artifact may have authored the panel
+    // as default-visible. Reading the panel class first is the only place
+    // we can still observe the author intent. Then drive the attribute,
+    // classes, and posted state from that captured value so a default
+    // visible tw-panel reports visible:true and the toolbar toggle starts
+    // ON. Issue surfaced in PR #1643 review.
+    var panel = panelEl();
+    var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
+    applyClassesToPanel(initialVisible);
+    attachObserver();
+    postAvailability();
+    // Post the captured initial visibility so the toolbar toggle reflects
+    // the default state on mount. Without this the toggle reads OFF while
+    // a default-visible tw-panel artifact clearly shows its panel and the
+    // user would have to click toggle-on then toggle-off to actually hide.
+    postState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+    onReady();
+  }
+
+  window.addEventListener('message', function(ev){
+    if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
+    setPanelVisible(!!ev.data.visible);
+  });
+})();</script></head>
+<body>
+    <div class="phone-frame" data-od-id="path-0">
+        <div class="status-bar">
+            <div class="status-time">9:41</div>
+            <div class="status-icons">
+                <span class="iconify" data-icon="solar:signal-linear"></span>
+                <span class="iconify" data-icon="solar:wifi-linear"></span>
+                <span class="iconify" data-icon="solar:battery-full-linear"></span>
+            </div>
+        </div>
+
+        <div class="header">
+            <button class="close-btn" type="button" aria-label="关闭" onclick="window.location.href='screen-home.html'" data-od-id="path-0-1-0">
+                <span class="iconify" data-icon="solar:close-outline" style="font-size: 22px;"></span>
+            </button>
+            <div class="page-title">考试成绩</div>
+            <button class="share-btn" type="button" aria-label="分享成绩" id="shareBtn" data-od-id="path-0-1-2">
+                <span class="iconify" data-icon="solar:share-linear" style="font-size: 20px;"></span>
+            </button>
+        </div>
+
+        <div class="toast" id="toast" data-od-id="path-0-2">成绩卡已生成</div>
+
+        <main class="content" data-od-id="path-0-3">
+            <section class="result-hero failed" aria-labelledby="resultTitle" data-od-id="path-0-3-0">
+                <div class="result-status failed" data-od-id="path-0-3-0-0">
+                    <span class="iconify" data-icon="solar:close-circle-bold"></span>
+                    未通过认证
+                </div>
+                <div class="score-row" data-od-id="path-0-3-0-1">
+                    <div class="score">58</div>
+                    <div class="score-unit">分</div>
+                </div>
+                <h1 class="result-title" id="resultTitle" data-od-id="path-0-3-0-2">智能家居方案顾问认证考试</h1>
+                <p class="result-desc">本次未达到 70 分通过线，成绩已保存。建议先补齐网关组网、售后工单和多选判断后再重新考试。</p>
+            </section>
+
+            <div class="summary-grid" aria-label="考试概览" data-od-id="path-0-3-1">
+                <div class="summary-card">
+                    <div class="summary-value">11/20</div>
+                    <div class="summary-label">答对题数</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value">29:42</div>
+                    <div class="summary-label">作答用时</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value">55%</div>
+                    <div class="summary-label">正确率</div>
+                </div>
+            </div>
+
+            <section class="section-card" aria-labelledby="typeTitle" data-od-id="path-0-3-2">
+                <div class="section-head" data-od-id="path-0-3-2-0">
+                    <h2 class="section-title" id="typeTitle" data-od-id="path-0-3-2-0-0">题型表现</h2>
+                    <a class="section-link" href="screen-exam-fill.html" data-od-id="path-0-3-2-0-1">查看答题</a>
+                </div>
+                <div class="type-row" data-od-id="path-0-3-2-1">
+                    <div class="type-name">单选题</div>
+                    <div class="bar"><div class="bar-fill" style="width: 60%;"></div></div>
+                    <div class="type-score">6/10</div>
+                </div>
+                <div class="type-row" data-od-id="path-0-3-2-2">
+                    <div class="type-name">多选题</div>
+                    <div class="bar"><div class="bar-fill" style="width: 40%;"></div></div>
+                    <div class="type-score">2/5</div>
+                </div>
+                <div class="type-row" data-od-id="path-0-3-2-3">
+                    <div class="type-name">填空题</div>
+                    <div class="bar"><div class="bar-fill" style="width: 60%;"></div></div>
+                    <div class="type-score">3/5</div>
+                </div>
+            </section>
+
+        </main>
+
+        <div class="bottom">
+            <button class="btn btn-secondary" type="button" onclick="window.location.href='screen-course-list.html'" data-od-id="path-0-4-0">去学习</button>
+            <button class="btn btn-primary" type="button" onclick="window.location.href='screen-exam.html'" data-od-id="path-0-4-1">
+                <span class="iconify" data-icon="solar:restart-bold"></span>
+                重新考试
+            </button>
+        </div>
+
+        <div class="home-indicator"></div>
+    </div>
+    <script>
+        const shareBtn = document.getElementById('shareBtn');
+        const toast = document.getElementById('toast');
+
+        shareBtn.addEventListener('click', () => {
+            toast.classList.add('show');
+            window.clearTimeout(window.resultToastTimer);
+            window.resultToastTimer = window.setTimeout(() => {
+                toast.classList.remove('show');
+            }, 1600);
+        });
+    </script>
+
+
+<script data-od-snapshot-bridge="">(function(){
+  function copyComputedStyle(source, target){
+    if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
+    var computed = window.getComputedStyle(source);
+    var style = target.getAttribute('style') || '';
+    for (var i = 0; i < computed.length; i++){
+      var prop = computed[i];
+      style += prop + ':' + computed.getPropertyValue(prop) + ';';
+    }
+    target.setAttribute('style', style);
+  }
+  function syncElementState(source, target){
+    var tag = source.tagName ? source.tagName.toLowerCase() : '';
+    if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
+    if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
+    if (tag === 'canvas') {
+      try {
+        var img = document.createElement('img');
+        img.setAttribute('src', source.toDataURL('image/png'));
+        img.setAttribute('style', target.getAttribute('style') || '');
+        target.parentNode && target.parentNode.replaceChild(img, target);
+      } catch (_) {}
+    }
+  }
+  function inlineSnapshotStyles(originalRoot, cloneRoot){
+    copyComputedStyle(originalRoot, cloneRoot);
+    syncElementState(originalRoot, cloneRoot);
+    var originals = originalRoot.querySelectorAll('*');
+    var clones = cloneRoot.querySelectorAll('*');
+    var count = Math.min(originals.length, clones.length);
+    for (var i = 0; i < count; i++){
+      copyComputedStyle(originals[i], clones[i]);
+      syncElementState(originals[i], clones[i]);
+    }
+    var scripts = cloneRoot.querySelectorAll('script');
+    for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
+  }
+  function waitForImages(){
+    var imgs = Array.prototype.slice.call(document.images || []);
+    return Promise.all(imgs.map(function(img){
+      if (img.complete) return Promise.resolve();
+      return new Promise(function(resolve){
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      });
+    }));
+  }
+  function renderSnapshot(id){
+    var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
+    var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+    var dpr = window.devicePixelRatio || 1;
+    var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
+    var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+    var clone = document.documentElement.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    inlineSnapshotStyles(document.documentElement, clone);
+    var serializer = new XMLSerializer();
+    var html = serializer.serializeToString(clone);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+      '<foreignObject x="' + (-window.scrollX || 0) + '" y="' + (-window.scrollY || 0) + '" width="' + docW + '" height="' + docH + '">' +
+      html +
+      '</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.floor(w * dpr));
+        canvas.height = Math.max(1, Math.floor(h * dpr));
+        var ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('no 2d context');
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(img, 0, 0, w, h);
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
+      } catch (err) {
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
+      }
+    };
+    img.onerror = function(){
+      window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:snapshot' || !data.id) return;
+    waitForImages().then(function(){ renderSnapshot(String(data.id)); });
+  });
+})();</script><script data-od-srcdoc-transport-activation="">(function(){
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
+    document.open();
+    document.write(data.html);
+    document.close();
+  });
+})();</script></body></html>
