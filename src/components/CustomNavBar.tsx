@@ -18,15 +18,31 @@ interface CustomNavBarProps {
   placeholder?: boolean;
 }
 
-interface NavMetrics {
+export interface NavMetrics {
   statusBarHeight: number;
   navBarHeight: number;
   capsuleWidth: number;
 }
 
-function getNavMetrics(): NavMetrics {
-  const systemInfo = Taro.getSystemInfoSync();
+function getSafeSystemInfo() {
+  try {
+    return Taro.getSystemInfoSync();
+  } catch {
+    return { statusBarHeight: 0, windowWidth: 375 };
+  }
+}
+
+export function getCustomNavMetrics(): NavMetrics {
+  const systemInfo = getSafeSystemInfo();
   const statusBarHeight = systemInfo.statusBarHeight || 0;
+
+  if (process.env.TARO_ENV === 'h5') {
+    return {
+      statusBarHeight: 0,
+      navBarHeight: 48,
+      capsuleWidth: 104,
+    };
+  }
 
   try {
     const menuButton = Taro.getMenuButtonBoundingClientRect();
@@ -66,9 +82,10 @@ export default function CustomNavBar({
   fixed = false,
   placeholder,
 }: CustomNavBarProps) {
-  const metrics = useMemo(getNavMetrics, []);
+  const metrics = useMemo(getCustomNavMetrics, []);
   const navHeight = metrics.statusBarHeight + metrics.navBarHeight;
-  const shouldRenderPlaceholder = placeholder ?? fixed;
+  const shouldFixNav = fixed || process.env.TARO_ENV === 'h5';
+  const shouldRenderPlaceholder = placeholder ?? shouldFixNav;
 
   const handleBack = () => {
     if (onBack) {
@@ -87,7 +104,7 @@ export default function CustomNavBar({
 
   return (
     <>
-      <View className={`custom-nav custom-nav-${variant} ${fixed ? 'custom-nav-fixed' : ''}`}>
+      <View className={`custom-nav custom-nav-${variant} ${shouldFixNav ? 'custom-nav-fixed' : ''}`}>
         <View style={{ height: `${metrics.statusBarHeight}px` }} />
         <View className="custom-nav-bar" style={{ height: `${metrics.navBarHeight}px` }}>
           <View className="custom-nav-left">

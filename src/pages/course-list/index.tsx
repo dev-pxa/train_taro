@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Taro, { useDidShow, useRouter } from '@tarojs/taro';
 import { ScrollView, Text, View } from '@tarojs/components';
 import AuthGate from '../../components/AuthGate';
 import CourseCard from '../../components/CourseCard';
-import CustomNavBar from '../../components/CustomNavBar';
+import CustomNavBar, { getCustomNavMetrics } from '../../components/CustomNavBar';
 import ErrorState from '../../components/ErrorState';
 import { useFetchData } from '../../hooks/useFetchData';
 import { fetchCourseList } from '../../services/api';
 import { Course, CourseCategory, CourseListResponse } from '../../types';
+
+const COURSE_LIST_FILTER_HEIGHT = 162;
 
 const CATEGORY_TABS: { key: CourseCategory; label: string }[] = [
   { key: 'all', label: '全部' },
@@ -24,6 +26,8 @@ export default function CourseListPage() {
   const initialCategory = (router.params.category as CourseCategory) || 'all';
   const [activeCategory, setActiveCategory] = useState<CourseCategory>(initialCategory);
   const { data, loading, error, fetchData } = useFetchData<CourseListResponse['data']>();
+  const navMetrics = useMemo(getCustomNavMetrics, []);
+  const navHeight = navMetrics.statusBarHeight + navMetrics.navBarHeight;
 
   useEffect(() => {
     fetchData(() => fetchCourseList(activeCategory));
@@ -48,24 +52,27 @@ export default function CourseListPage() {
       <View className="page course-list-page">
         <CustomNavBar title="课程列表" variant="default" fixed />
 
-        <ScrollView scrollX className="category-tabs" showScrollbar={false}>
-          {CATEGORY_TABS.map(tab => (
-            <Text key={tab.key} className={`category-tab ${tab.key === activeCategory ? 'active' : ''}`} onClick={() => setActiveCategory(tab.key)}>
-              {tab.label}
-            </Text>
-          ))}
-        </ScrollView>
+        <View className="course-list-fixed-tools" style={{ top: `${navHeight}px` }}>
+          <ScrollView scrollX className="category-tabs" showScrollbar={false}>
+            {CATEGORY_TABS.map(tab => (
+              <Text key={tab.key} className={`category-tab ${tab.key === activeCategory ? 'active' : ''}`} onClick={() => setActiveCategory(tab.key)}>
+                {tab.label}
+              </Text>
+            ))}
+          </ScrollView>
 
-        <View className="filter-bar">
-          <Text className="filter-result">共 {courses.length} 门课程</Text>
-          <Text className="filter-sort">最新 ⌄</Text>
+          <View className="filter-bar">
+            <Text className="filter-result">共 {courses.length} 门课程</Text>
+            <Text className="filter-sort">最新 ⌄</Text>
+          </View>
         </View>
+        <View style={{ height: `${COURSE_LIST_FILTER_HEIGHT}px` }} />
 
         {loading ? <View className="loading-state"><Text className="loading-text">加载中...</Text></View> : null}
         {error || !data ? (
           !loading ? <ErrorState message={error || '数据加载失败'} onRetry={() => fetchData(() => fetchCourseList(activeCategory))} /> : null
         ) : (
-          <ScrollView scrollY className="course-list-scroll">
+          <ScrollView scrollY className="course-list-scroll" style={{ height: `calc(100vh - ${navHeight + COURSE_LIST_FILTER_HEIGHT}px)` }}>
             {courses.length ? (
               <View className="course-grid course-grid-page">
                 {courses.map(course => <CourseCard key={course.id} course={course} onPress={openCourse} />)}

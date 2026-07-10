@@ -90,6 +90,19 @@ export async function getApiBaseUrl(): Promise<string> {
   return config.apiBaseUrl || FALLBACK_ENVIRONMENT_CONFIG.apiBaseUrl;
 }
 
+function shouldUseH5DevProxy(config: RuntimeEnvironmentConfig): boolean {
+  return (
+    process.env.TARO_ENV === 'h5' &&
+    process.env.NODE_ENV === 'development' &&
+    config.env === 'test' &&
+    config.apiBaseUrl === API_ENVIRONMENT_OPTIONS.test.apiBaseUrl
+  );
+}
+
 export async function getFullApiBaseUrl(): Promise<string> {
-  return `${await getApiBaseUrl()}${API_PATH_PREFIX}`;
+  const config = await loadEnvironmentConfig();
+  if (shouldUseH5DevProxy(config)) {
+    return API_PATH_PREFIX;
+  }
+  return `${config.apiBaseUrl || FALLBACK_ENVIRONMENT_CONFIG.apiBaseUrl}${API_PATH_PREFIX}`;
 }

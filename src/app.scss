@@ -64,7 +64,8 @@ button::after {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 50;
+  z-index: 100;
+  transform: translateZ(0);
 }
 
 .custom-nav-white {
@@ -352,11 +353,14 @@ button::after {
 }
 
 .page-scroll,
-.course-list-scroll,
 .result-scroll,
 .certificate-scroll,
 .debug-scroll {
   height: calc(100vh - 160px);
+}
+
+.course-list-scroll {
+  height: calc(100vh - 210px);
 }
 
 .login-page {
@@ -439,6 +443,30 @@ button::after {
   line-height: 96px;
   font-size: 28px;
   color: #1a1a1a;
+}
+
+.login-form .input-text,
+.login-form .input-control {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-width: 0;
+}
+
+.login-form taro-input-core.input-control {
+  height: 100%;
+  line-height: normal;
+}
+
+.login-form taro-input-core.input-control .weui-input,
+.login-form .input-control input {
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  line-height: normal;
+  font-size: inherit;
+  color: inherit;
 }
 
 .input-icon {
@@ -661,6 +689,16 @@ button::after {
   white-space: nowrap;
   height: 88px;
   padding: 0 28px;
+}
+
+.course-list-fixed-tools {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 90;
+  background: #f8fafc;
+  box-shadow: 0 10px 24px rgba(31, 41, 55, 0.06);
+  transform: translateZ(0);
 }
 
 .category-tab {
@@ -1808,6 +1846,27 @@ button::after {
   background: #ffffff;
   color: #1a1a2e;
   font-size: 30px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  line-height: normal;
+  box-sizing: border-box;
+}
+
+taro-input-core.fill-blank-input {
+  height: 96px;
+  line-height: normal;
+}
+
+taro-input-core.fill-blank-input .weui-input,
+.fill-blank-input input {
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  line-height: normal;
+  font-size: inherit;
+  color: inherit;
 }
 
 .fill-blank-input.filled {
