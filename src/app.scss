@@ -944,8 +944,18 @@ button::after {
   margin-top: 18px;
 }
 
+.player-page {
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .video-shell {
   position: relative;
+  flex-shrink: 0;
   height: 420px;
   background: #000000;
 }
@@ -956,6 +966,7 @@ button::after {
 }
 
 .player-info {
+  flex-shrink: 0;
   padding: 28px 32px;
 }
 
@@ -1005,6 +1016,7 @@ button::after {
 }
 
 .player-tabs {
+  flex-shrink: 0;
   height: 86px;
   display: flex;
   flex-direction: row;
@@ -1028,8 +1040,11 @@ button::after {
 }
 
 .player-scroll {
-  height: calc(100vh - 618px);
+  flex: 1;
+  min-height: 0;
+  height: auto;
   background: #ffffff;
+  overflow: hidden;
 }
 
 .catalog-item {

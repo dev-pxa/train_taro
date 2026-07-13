@@ -1,0 +1,10 @@
+.git
+.swc
+dist
+node_modules
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+project.private.config.json
