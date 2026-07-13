@@ -1,0 +1,50 @@
+name: Deploy H5 to Tencent Cloud
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-h5-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy H5
+    runs-on: ubuntu-latest
+    env:
+      SSH_HOST: ${{ secrets.TENCENT_CLOUD_HOST }}
+      SSH_USER: ${{ secrets.TENCENT_CLOUD_USER }}
+      SSH_PORT: ${{ secrets.TENCENT_CLOUD_PORT }}
+      SSH_PRIVATE_KEY: ${{ secrets.TENCENT_CLOUD_SSH_KEY }}
+      DEPLOY_PATH: ${{ secrets.TENCENT_CLOUD_DEPLOY_PATH }}
+      H5_HTTP_PORT: ${{ secrets.H5_HTTP_PORT }}
+      BACKEND_UPSTREAM: ${{ secrets.BACKEND_UPSTREAM }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Normalize deployment variables
+        run: |
+          test -n "$SSH_HOST" || (echo "Missing secret: TENCENT_CLOUD_HOST" && exit 1)
+          test -n "$SSH_USER" || (echo "Missing secret: TENCENT_CLOUD_USER" && exit 1)
+          test -n "$SSH_PRIVATE_KEY" || (echo "Missing secret: TENCENT_CLOUD_SSH_KEY" && exit 1)
+          echo "SSH_PORT=${SSH_PORT:-22}" >> "$GITHUB_ENV"
+          echo "DEPLOY_PATH=${DEPLOY_PATH:-/opt/train-taro}" >> "$GITHUB_ENV"
+          echo "H5_HTTP_PORT=${H5_HTTP_PORT:-8081}" >> "$GITHUB_ENV"
+          echo "BACKEND_UPSTREAM=${BACKEND_UPSTREAM:-host.docker.internal:8082}" >> "$GITHUB_ENV"
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/tencent_cloud_deploy_key
+          chmod 600 ~/.ssh/tencent_cloud_deploy_key
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy by SSH script
+        run: |
+          SSH_KEY_PATH=~/.ssh/tencent_cloud_deploy_key ./scripts/deploy-ssh.sh
