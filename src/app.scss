@@ -1199,6 +1199,22 @@ button::after {
   padding: 18px 18px 0;
 }
 
+.pdf-iframe-shell {
+  flex: 1;
+  min-height: 0;
+  padding: 18px;
+  background: #f8fafc;
+}
+
+.pdf-iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  display: block;
+  background: #ffffff;
+}
+
 .pdf-page {
   position: relative;
   width: 100%;
@@ -1230,6 +1246,7 @@ button::after {
 }
 
 .pdf-preview-status {
+  flex: 1;
   min-height: 360px;
   padding: 72px 40px;
   display: flex;

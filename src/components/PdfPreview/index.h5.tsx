@@ -1,15 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { ScrollView, Text, View } from '@tarojs/components';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { useEffect, useMemo, useState } from 'react';
+import { Text, View } from '@tarojs/components';
 import Icon from '../Icon';
 import { getResourceAuthOptions } from '../../services/resourceRequest';
-
-if (typeof window !== 'undefined' && 'Worker' in window && !pdfjsLib.GlobalWorkerOptions.workerPort) {
-  pdfjsLib.GlobalWorkerOptions.workerPort = new Worker(
-    new URL('pdfjs-dist/legacy/build/pdf.worker.mjs', import.meta.url),
-    { type: 'module' },
-  );
-}
 
 type PdfPreviewProps = {
   url: string;
@@ -19,29 +11,28 @@ type PdfPreviewProps = {
 type PreviewStatus = 'loading' | 'ready' | 'error';
 
 export default function PdfPreview({ url, title }: PdfPreviewProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const loadingTaskRef = useRef<any>(null);
   const [status, setStatus] = useState<PreviewStatus>('loading');
   const [message, setMessage] = useState('正在加载PDF');
-  const [pageCount, setPageCount] = useState(0);
-  const [renderedPages, setRenderedPages] = useState(0);
+  const [objectUrl, setObjectUrl] = useState('');
+
+  const previewTitle = useMemo(() => title || 'PDF预览', [title]);
 
   const openInNewTab = () => {
-    if (typeof window !== 'undefined' && url) {
-      window.open(url, '_blank');
+    if (typeof window !== 'undefined') {
+      const targetUrl = objectUrl || url;
+      if (targetUrl) {
+        window.open(targetUrl, '_blank');
+      }
     }
   };
 
   useEffect(() => {
     let cancelled = false;
-    const root = containerRef.current;
-    if (!root) return undefined;
+    let nextObjectUrl = '';
 
-    root.innerHTML = '';
+    setObjectUrl('');
     setStatus('loading');
     setMessage('正在加载PDF');
-    setPageCount(0);
-    setRenderedPages(0);
 
     if (!url) {
       setStatus('error');
@@ -49,7 +40,7 @@ export default function PdfPreview({ url, title }: PdfPreviewProps) {
       return undefined;
     }
 
-    const renderPdf = async () => {
+    const loadPdf = async () => {
       try {
         const { header, credentials } = await getResourceAuthOptions(url);
         const response = await fetch(url, { headers: header, credentials });
@@ -57,59 +48,15 @@ export default function PdfPreview({ url, title }: PdfPreviewProps) {
           throw new Error(`PDF下载失败：${response.status}`);
         }
 
-        const pdfData = new Uint8Array(await response.arrayBuffer());
-        const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-        loadingTaskRef.current = loadingTask;
-        const pdf = await loadingTask.promise;
+        const blob = await response.blob();
         if (cancelled) return;
 
-        setPageCount(pdf.numPages);
-        const containerWidth = Math.max(root.clientWidth || window.innerWidth || 375, 320);
-        const deviceScale = Math.min(window.devicePixelRatio || 1, 2);
-
-        for (let pageNo = 1; pageNo <= pdf.numPages; pageNo += 1) {
-          if (cancelled) break;
-
-          const page = await pdf.getPage(pageNo);
-          const originalViewport = page.getViewport({ scale: 1 });
-          const scale = containerWidth / originalViewport.width;
-          const viewport = page.getViewport({ scale });
-
-          const pageWrap = document.createElement('div');
-          pageWrap.className = 'pdf-page';
-
-          const pageLabel = document.createElement('div');
-          pageLabel.className = 'pdf-page-label';
-          pageLabel.innerText = `${pageNo} / ${pdf.numPages}`;
-
-          const canvas = document.createElement('canvas');
-          canvas.className = 'pdf-canvas';
-          canvas.width = Math.floor(viewport.width * deviceScale);
-          canvas.height = Math.floor(viewport.height * deviceScale);
-          canvas.style.width = `${viewport.width}px`;
-          canvas.style.height = `${viewport.height}px`;
-
-          pageWrap.appendChild(pageLabel);
-          pageWrap.appendChild(canvas);
-          root.appendChild(pageWrap);
-
-          const context = canvas.getContext('2d');
-          if (!context) {
-            throw new Error('Canvas初始化失败');
-          }
-          context.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
-
-          await page.render({ canvasContext: context, viewport }).promise;
-          page.cleanup();
-          if (!cancelled) {
-            setRenderedPages(pageNo);
-          }
-        }
-
-        if (!cancelled) {
-          setStatus('ready');
-          setMessage(title || 'PDF预览');
-        }
+        nextObjectUrl = URL.createObjectURL(
+          new Blob([blob], { type: blob.type || 'application/pdf' }),
+        );
+        setObjectUrl(nextObjectUrl);
+        setStatus('ready');
+        setMessage(previewTitle);
       } catch (error) {
         if (cancelled) return;
         console.error('PDF preview failed:', error);
@@ -118,37 +65,37 @@ export default function PdfPreview({ url, title }: PdfPreviewProps) {
       }
     };
 
-    renderPdf();
+    loadPdf();
 
     return () => {
       cancelled = true;
-      loadingTaskRef.current?.destroy?.();
-      loadingTaskRef.current = null;
-      root.innerHTML = '';
+      if (nextObjectUrl) {
+        URL.revokeObjectURL(nextObjectUrl);
+      }
     };
-  }, [title, url]);
+  }, [previewTitle, url]);
 
   return (
     <View className="pdf-preview">
       <View className="resource-title-bar">
-        <Text className="resource-title">{title || 'PDF预览'}</Text>
+        <Text className="resource-title">{previewTitle}</Text>
         <View className="resource-action" onClick={openInNewTab}><Icon name="Share" /> 打开文件</View>
       </View>
-      <ScrollView scrollY className="pdf-preview-scroll">
-        {status !== 'ready' && (
-          <View className={`pdf-preview-status pdf-preview-status-${status}`}>
-            <Text className="pdf-preview-status-title">{message}</Text>
-            {status === 'loading' && pageCount > 0 && (
-              <Text className="pdf-preview-status-desc">已渲染 {renderedPages} / {pageCount} 页</Text>
-            )}
-            {status === 'error' && (
-              <Text className="pdf-preview-status-desc">H5内嵌预览需要PDF资源允许跨域访问</Text>
-            )}
-          </View>
-        )}
-        <View ref={containerRef} className="pdf-preview-pages" />
-        <View className="safe-bottom" />
-      </ScrollView>
+      {status === 'ready' && objectUrl ? (
+        <View className="pdf-iframe-shell">
+          <iframe className="pdf-iframe" src={objectUrl} title={previewTitle} />
+        </View>
+      ) : (
+        <View className={`pdf-preview-status pdf-preview-status-${status}`}>
+          <Text className="pdf-preview-status-title">{message}</Text>
+          {status === 'loading' && (
+            <Text className="pdf-preview-status-desc">正在准备内嵌预览</Text>
+          )}
+          {status === 'error' && (
+            <Text className="pdf-preview-status-desc">请检查文件地址、登录状态或跨域配置</Text>
+          )}
+        </View>
+      )}
     </View>
   );
 }
