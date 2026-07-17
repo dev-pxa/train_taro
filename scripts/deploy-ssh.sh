@@ -59,7 +59,7 @@ H5_HTTP_PORT=$H5_HTTP_PORT
 BACKEND_UPSTREAM=$BACKEND_UPSTREAM
 EOF
 
-docker compose build --pull
+docker compose build --pull --no-cache
 docker compose up -d
 docker compose ps
 curl -fsS "http://127.0.0.1:${H5_HTTP_PORT}/healthz"
