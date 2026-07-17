@@ -60,6 +60,14 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
     },
     h5: {
       publicPath: '/',
+      // H5 异步 chunk 默认只有数字名，线上发版后旧缓存容易请求到不存在的 chunk。
+      // 带 contenthash 后，新旧构建文件名隔离，能避免缓存错配。
+      output: {
+        filename: (pathData) => pathData.chunk?.runtime === 'app'
+          ? 'js/[name].[contenthash:8].js'
+          : '[name].[contenthash:8].js',
+        chunkFilename: 'chunk/[name].[contenthash:8].js'
+      },
       staticDirectory: 'static',
       miniCssExtractPluginOption: {
         ignoreOrder: true,

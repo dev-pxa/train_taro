@@ -68,6 +68,15 @@ server {
     proxy_read_timeout 60s;
   }
 
+  # Old cached entry bundles may still request numeric chunks such as /chunk/7.js.
+  # Return a tiny reload script instead of 404 so the browser can recover to the latest build.
+  location ~ ^/chunk/[0-9]+\.js$ {
+    expires -1;
+    default_type application/javascript;
+    add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
+    return 200 "try{var k='train_taro_legacy_chunk_reload_at';var n=Date.now();var l=Number(sessionStorage.getItem(k)||0);if(n-l>60000){sessionStorage.setItem(k,String(n));window.location.reload();}}catch(e){window.location.reload();}\n";
+  }
+
   location ~* \.(?:js|css)$ {
     try_files $uri =404;
     expires -1;
