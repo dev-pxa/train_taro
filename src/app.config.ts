@@ -6,6 +6,7 @@ export default {
     "pages/course-list/index",
     "pages/exam-center/index",
     "pages/course-player/index",
+    "pages/resource-preview/index",
     "pages/exam/index",
     "pages/exam-result/index",
     "pages/certificate-detail/index",

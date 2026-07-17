@@ -4,7 +4,7 @@ import { ScrollView, Text, Video, View } from '@tarojs/components';
 import AuthGate from '../../components/AuthGate';
 import CustomNavBar from '../../components/CustomNavBar';
 import ErrorState from '../../components/ErrorState';
-import Icon from '../../components/Icon';
+import Icon, { IconName } from '../../components/Icon';
 import { useFetchData } from '../../hooks/useFetchData';
 import { fetchCourseDetail, updatePlayProgress } from '../../services/api';
 import { Chapter, CourseDetail } from '../../types';
@@ -38,11 +38,12 @@ export default function CoursePlayerPage() {
 
   useEffect(() => {
     if (data?.chapters.length && playingItemId === null) {
-      const target = data.chapters[data.currentChapterIndex] || data.chapters.find(item => item.type === 'video') || data.chapters[0];
-      setPlayingItemId(target.id);
+      const preferred = data.chapters[data.currentChapterIndex];
+      const target = preferred?.type === 'video' ? preferred : data.chapters.find(item => item.type === 'video');
+      setPlayingItemId(target?.id ?? null);
       setChapters(data.chapters);
-      playingItemIdRef.current = target.id;
-      currentTimeRef.current = target.initialTime;
+      playingItemIdRef.current = target?.id ?? null;
+      currentTimeRef.current = target?.initialTime ?? 0;
     }
   }, [data, playingItemId]);
 
@@ -60,12 +61,35 @@ export default function CoursePlayerPage() {
     }
   }, [reportPlayProgress]);
 
-  const currentPlayingItem = useMemo(() => chapters.find(item => item.id === playingItemId) || chapters[0], [chapters, playingItemId]);
+  const currentPlayingItem = useMemo(() => chapters.find(item => item.id === playingItemId && item.type === 'video') || chapters.find(item => item.type === 'video'), [chapters, playingItemId]);
+
+  const getCatalogMeta = (item: Chapter, isCurrent: boolean): string => {
+    if (isCurrent) return '正在播放';
+    if (item.type === 'image') return '图片资料';
+    if (item.type === 'pdf') return 'PDF资料';
+    if (item.type === 'test') return '考试测验';
+    return `时长 ${formatDuration(item.spendTime)}`;
+  };
+
+  const getCatalogIconName = (item: Chapter): IconName => {
+    if (item.status === 'locked' && item.type === 'test') return 'Lock';
+    if (item.status === 'completed') return 'CheckCircle';
+    if (item.type === 'test') return 'Exam';
+    if (item.type === 'image' || item.type === 'pdf') return 'Book';
+    return 'Play';
+  };
 
   const handleCatalogItemPress = (item: Chapter) => {
-    if (item.status === 'locked') return;
+    if (item.status === 'locked' && item.type === 'test') return;
     if (item.type === 'test') {
       Taro.navigateTo({ url: `/pages/exam/index?courseId=${courseId}&chapterId=${item.id}` });
+      return;
+    }
+    if (item.type === 'image' || item.type === 'pdf') {
+      if (playingItemId !== null) reportPlayProgress(playingItemId, currentTimeRef.current);
+      Taro.navigateTo({
+        url: `/pages/resource-preview/index?type=${item.type}&url=${encodeURIComponent(item.url || '')}&title=${encodeURIComponent(item.name)}`,
+      });
       return;
     }
     if (playingItemId !== null) reportPlayProgress(playingItemId, currentTimeRef.current);
@@ -83,14 +107,18 @@ export default function CoursePlayerPage() {
         ) : (
           <>
             <View className="video-shell">
-              <Video
-                className="video-player"
-                src={currentPlayingItem?.url || ''}
-                initialTime={currentPlayingItem?.initialTime || 0}
-                controls
-                autoplay
-                onTimeUpdate={event => { currentTimeRef.current = event.detail.currentTime; }}
-              />
+              {currentPlayingItem ? (
+                <Video
+                  className="video-player"
+                  src={currentPlayingItem.url || ''}
+                  initialTime={currentPlayingItem.initialTime || 0}
+                  controls
+                  autoplay
+                  onTimeUpdate={event => { currentTimeRef.current = event.detail.currentTime; }}
+                />
+              ) : (
+                <View className="video-empty"><Text className="video-empty-text">暂无视频章节</Text></View>
+              )}
             </View>
 
             <View className="player-info">
@@ -120,9 +148,9 @@ export default function CoursePlayerPage() {
                     <Text className="catalog-index">{item.index}</Text>
                     <View className="catalog-main">
                       <Text className="catalog-name">{item.name}</Text>
-                      <Text className="catalog-meta">{isCurrent ? '正在播放' : `时长 ${formatDuration(item.spendTime)}`}</Text>
+                      <Text className="catalog-meta">{getCatalogMeta(item, isCurrent)}</Text>
                     </View>
-                    <Icon name={item.type === 'test' ? 'Exam' : item.status === 'locked' ? 'Lock' : item.status === 'completed' ? 'CheckCircle' : 'Play'} />
+                    <Icon name={getCatalogIconName(item)} />
                   </View>
                 );
               }) : (

@@ -11,10 +11,12 @@ ARCHIVE_NAME="train-taro-h5-release.tgz"
 LOCAL_ARCHIVE="/tmp/${ARCHIVE_NAME}"
 REMOTE_ARCHIVE="/tmp/${ARCHIVE_NAME}"
 SSH_KEY_PATH="${SSH_KEY_PATH:-}"
-SSH_KEY_ARGS=()
+SCP_CMD=(scp -P "$SSH_PORT")
+SSH_CMD=(ssh -p "$SSH_PORT")
 
 if [[ -n "$SSH_KEY_PATH" ]]; then
-  SSH_KEY_ARGS=(-i "$SSH_KEY_PATH")
+  SCP_CMD=(scp -i "$SSH_KEY_PATH" -P "$SSH_PORT")
+  SSH_CMD=(ssh -i "$SSH_KEY_PATH" -p "$SSH_PORT")
 fi
 
 if [[ -z "$DEPLOY_PATH" || "$DEPLOY_PATH" == "/" ]]; then
@@ -35,10 +37,10 @@ tar \
   -czf "$LOCAL_ARCHIVE" .
 
 echo "Uploading to ${SSH_USER}@${SSH_HOST}:${REMOTE_ARCHIVE}..."
-scp "${SSH_KEY_ARGS[@]}" -P "$SSH_PORT" "$LOCAL_ARCHIVE" "${SSH_USER}@${SSH_HOST}:${REMOTE_ARCHIVE}"
+"${SCP_CMD[@]}" "$LOCAL_ARCHIVE" "${SSH_USER}@${SSH_HOST}:${REMOTE_ARCHIVE}"
 
 echo "Deploying on ${SSH_HOST}:${DEPLOY_PATH}..."
-ssh "${SSH_KEY_ARGS[@]}" -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" \
+"${SSH_CMD[@]}" "${SSH_USER}@${SSH_HOST}" \
   "DEPLOY_PATH='$DEPLOY_PATH' H5_HTTP_PORT='$H5_HTTP_PORT' BACKEND_UPSTREAM='$BACKEND_UPSTREAM' REMOTE_ARCHIVE='$REMOTE_ARCHIVE' bash -s" <<'REMOTE'
 set -euo pipefail
 

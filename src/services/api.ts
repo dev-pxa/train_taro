@@ -52,13 +52,14 @@ async function request<T>(path: string, options: any = {}, auth = true): Promise
   const header = {
     'Content-Type': 'application/json',
     ...(options.header || {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(token ? { Authorization: `Bearer ${token}`, token } : {}),
   };
 
   const response = await Taro.request<T>({
     ...options,
     url: `${await getFullApiBaseUrl()}${path}`,
     header,
+    credentials: 'include',
   });
 
   if (response.statusCode === 401) {
