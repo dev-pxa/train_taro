@@ -4,15 +4,30 @@ import { Input, ScrollView, Text, View } from '@tarojs/components';
 import AuthGate from '../../components/AuthGate';
 import CustomNavBar from '../../components/CustomNavBar';
 import ErrorState from '../../components/ErrorState';
-import Icon from '../../components/Icon';
+import Icon, { IconName } from '../../components/Icon';
 import { useFetchData } from '../../hooks/useFetchData';
-import { fetchExamDetail, submitExam } from '../../services/api';
-import { ExamDetail, ExamQuestion, ExamSubmitAnswer } from '../../types';
+import { fetchExamDetail, startExam, submitExam } from '../../services/api';
+import { ExamDetail, ExamQuestion, ExamStartRequest, ExamSubmitAnswer } from '../../types';
 
 function formatTime(total: number): string {
   const m = Math.floor(total / 60).toString().padStart(2, '0');
   const s = (total % 60).toString().padStart(2, '0');
   return `${m}:${s}`;
+}
+
+function getSummaryIconName(type: string): IconName {
+  if (type === 'duration') return 'ExamDuration';
+  if (type === 'questionCount') return 'ExamQuestionCount';
+  if (type === 'passScore' || type === 'passingScore' || type === 'score') return 'ExamPassScore';
+  return 'Book';
+}
+
+function getResponseMessage(response: { des?: string; desc?: string }, fallback: string): string {
+  return response.des || response.desc || fallback;
+}
+
+function normalizeSeconds(seconds: unknown): number {
+  return typeof seconds === 'number' && Number.isFinite(seconds) ? seconds : 0;
 }
 
 export default function ExamPage() {
@@ -23,14 +38,18 @@ export default function ExamPage() {
   const [hasStarted, setHasStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
+  const [timerReady, setTimerReady] = useState(false);
   const [choiceAnswers, setChoiceAnswers] = useState<Record<number, number>>({});
   const [fillAnswers, setFillAnswers] = useState<Record<number, string[]>>({});
   const [focusedBlankIndex, setFocusedBlankIndex] = useState<number | null>(null);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [startSubmitting, setStartSubmitting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const hasSubmittedRef = useRef(false);
 
   useEffect(() => {
+    setTimerReady(false);
+    hasSubmittedRef.current = false;
     fetchData(() => fetchExamDetail(courseId, chapterId));
   }, [chapterId, courseId, fetchData]);
 
@@ -38,8 +57,9 @@ export default function ExamPage() {
     if (!data) return;
     const isInProgress = data.status === 'in_progress';
     setHasStarted(isInProgress);
-    setCurrentQuestionIndex(isInProgress ? data.currentQuestionIndex : 0);
-    setRemainingSeconds(isInProgress ? data.remainingSeconds : data.durationSeconds);
+    setCurrentQuestionIndex(0);
+    setRemainingSeconds(isInProgress ? normalizeSeconds(data.remainingSeconds) : normalizeSeconds(data.durationSeconds));
+    setTimerReady(true);
   }, [data]);
 
   const isAnswering = !!data && (hasStarted || data.status === 'in_progress');
@@ -50,7 +70,7 @@ export default function ExamPage() {
     return () => clearInterval(timer);
   }, [isAnswering, remainingSeconds]);
 
-  const questions = data?.questions || [];
+  const questions = Array.isArray(data?.questions) ? data.questions : [];
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex >= questions.length - 1;
 
@@ -88,10 +108,10 @@ export default function ExamPage() {
   }, [buildSubmitAnswers, chapterId, courseId, data, remainingSeconds, submitting]);
 
   useEffect(() => {
-    if (isAnswering && remainingSeconds === 0 && !hasSubmittedRef.current) {
+    if (timerReady && isAnswering && remainingSeconds === 0 && !hasSubmittedRef.current) {
       handleSubmitExam();
     }
-  }, [handleSubmitExam, isAnswering, remainingSeconds]);
+  }, [handleSubmitExam, isAnswering, remainingSeconds, timerReady]);
 
   useEffect(() => {
     setFocusedBlankIndex(null);
@@ -108,18 +128,50 @@ export default function ExamPage() {
 
   const handleLeaveExam = () => {
     setShowExitConfirm(false);
-    const pages = Taro.getCurrentPages();
-    if (pages.length > 1) {
-      Taro.navigateBack();
-      return;
-    }
-    Taro.switchTab({ url: '/pages/exam-center/index' });
+    handleSubmitExam();
   };
 
-  const handleStartExam = () => {
-    setHasStarted(true);
-    setRemainingSeconds(data?.durationSeconds || 0);
-    Taro.showToast({ title: '考试已开始', icon: 'none' });
+  const handleStartExam = async () => {
+    if (!data || startSubmitting) return;
+
+    const startRequest: ExamStartRequest = { chapterId };
+    const numericCourseId = Number(courseId);
+    if (courseId && Number.isFinite(numericCourseId)) {
+      startRequest.courseId = numericCourseId;
+    }
+
+    setStartSubmitting(true);
+    try {
+      const response = await startExam(startRequest);
+      const message = getResponseMessage(response, '开始考试失败');
+
+      if (response.code === 0 && response.data?.status === 'in_progress') {
+        setHasStarted(true);
+        setCurrentQuestionIndex(0);
+        setRemainingSeconds(response.data.remainingSeconds ?? data.durationSeconds ?? 0);
+        setTimerReady(true);
+        Taro.showToast({ title: message || '考试已开始', icon: 'none' });
+        return;
+      }
+
+      if (response.code === 40903) {
+        Taro.showToast({ title: message || '考试已通过，无需重新开始', icon: 'none' });
+        const examRecordId = response.data?.examRecordId;
+        if (examRecordId) {
+          setTimeout(() => {
+            Taro.redirectTo({ url: `/pages/exam-result/index?examRecordId=${examRecordId}&courseId=${courseId}&chapterId=${chapterId}` });
+          }, 800);
+        }
+        return;
+      }
+
+      Taro.showToast({ title: message, icon: 'none' });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '开始考试失败，请重试';
+      Taro.showToast({ title: message, icon: 'none' });
+    } finally {
+      setStartSubmitting(false);
+    }
   };
 
   const renderFillQuestionTitle = (question: ExamQuestion) => {
@@ -218,7 +270,7 @@ export default function ExamPage() {
                   {data.startPage.summaryItems.map(item => (
                     <View className="summary-card soft-card" key={item.label}>
                       <View className="summary-icon">
-                        <Icon name={item.type === 'duration' ? 'Clock' : 'Book'} className="summary-icon-text" />
+                        <Icon name={getSummaryIconName(item.type)} className="summary-icon-text" />
                       </View>
                       <Text className="summary-label">{item.label}</Text>
                       <Text className="summary-value">{item.value}</Text>
@@ -252,7 +304,7 @@ export default function ExamPage() {
             </ScrollView>
             <View className="exam-bottom">
               <View className="exam-btn exam-btn-secondary" onClick={() => Taro.navigateBack()}>取消</View>
-              <View className="exam-btn exam-btn-primary" onClick={handleStartExam}>去开始</View>
+              <View className={`exam-btn exam-btn-primary ${startSubmitting ? 'disabled' : ''}`} onClick={handleStartExam}>{startSubmitting ? '开始中...' : '去开始'}</View>
             </View>
           </>
         ) : currentQuestion ? (
@@ -295,16 +347,24 @@ export default function ExamPage() {
                     </View>
                   </View>
                   <Text className="exit-modal-title">确认要离开吗？</Text>
-                  <Text className="exit-modal-desc">离开后当前答题进度将不会保存，请谨慎操作</Text>
+                  <Text className="exit-modal-desc">确认离开将提交当前作答并生成考试结果，请谨慎操作</Text>
                   <View className="exit-modal-buttons">
                     <View className="exit-modal-btn exit-modal-btn-continue" onClick={() => setShowExitConfirm(false)}>继续考试</View>
-                    <View className="exit-modal-btn exit-modal-btn-leave" onClick={handleLeaveExam}>确认离开</View>
+                    <View className={`exit-modal-btn exit-modal-btn-leave ${submitting ? 'disabled' : ''}`} onClick={handleLeaveExam}>{submitting ? '提交中...' : '确认离开'}</View>
                   </View>
                 </View>
               </View>
             ) : null}
           </View>
-        ) : null}
+        ) : (
+          <View className="exam-answer-page">
+            <CustomNavBar title="考试" variant="white" showBack />
+            <ErrorState
+              message="题目数据为空或加载异常，请返回后重新进入考试"
+              onRetry={() => fetchData(() => fetchExamDetail(courseId, chapterId))}
+            />
+          </View>
+        )}
       </View>
     </AuthGate>
   );

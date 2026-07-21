@@ -148,7 +148,7 @@ export type ExamQuestion = ChoiceExamQuestion | FillExamQuestion;
 
 export interface ExamStartPageInfo {
   statusText: string;
-  summaryItems: { type: 'duration' | 'questionCount'; label: string; value: string }[];
+  summaryItems: { type: 'duration' | 'questionCount' | 'passScore' | 'passingScore' | 'score'; label: string; value: string }[];
   requirementTitle: string;
   requirements: string[];
   notice: string;
@@ -163,11 +163,26 @@ export interface ExamDetail {
   status: ExamStatus;
   durationSeconds: number;
   remainingSeconds: number;
-  currentQuestionIndex: number;
+  currentQuestionIndex?: number;
   questions: ExamQuestion[];
 }
 
 export type ExamResponse = ApiResponse<ExamDetail>;
+
+export interface ExamStartRequest {
+  courseId?: number;
+  chapterId?: number;
+}
+
+export interface ExamStartVO {
+  examRecordId: number;
+  quizId: number;
+  status: 'in_progress' | 'pass' | 'fail';
+  durationSeconds: number;
+  remainingSeconds: number;
+}
+
+export type ExamStartResponse = ApiResponse<ExamStartVO | null>;
 
 export type ExamSubmitAnswer =
   | { questionId: number; type: 0; optionIndex: number }

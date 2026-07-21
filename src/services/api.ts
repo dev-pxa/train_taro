@@ -6,6 +6,8 @@ import {
   CourseListResponse,
   ExamResponse,
   ExamResultResponse,
+  ExamStartRequest,
+  ExamStartResponse,
   ExamSubmitRequest,
   ExamSubmitResponse,
   HomeResponse,
@@ -30,6 +32,7 @@ import {
   mockLogin,
   mockLoginConfig,
   mockProfileData,
+  mockStartExam,
   mockSubmitExam,
   mockExamData,
 } from './mock';
@@ -119,6 +122,10 @@ export async function updatePlayProgress(playProgressRequest: UpdatePlayProgress
 export async function fetchExamDetail(courseId: string, chapterId: number): Promise<ExamResponse> {
   console.log('fetchExamDetail:', courseId, chapterId);
   return USE_MOCK ? mockDelay(mockExamData) : request<ExamResponse>(`/exam?courseId=${courseId}&chapterId=${chapterId}`);
+}
+
+export async function startExam(examStartRequest: ExamStartRequest): Promise<ExamStartResponse> {
+  return USE_MOCK ? mockStartExam(examStartRequest) : request<ExamStartResponse>('/exam/start', { method: 'POST', data: examStartRequest });
 }
 
 export async function submitExam(examSubmitRequest: ExamSubmitRequest): Promise<ExamSubmitResponse> {

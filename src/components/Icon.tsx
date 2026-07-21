@@ -4,7 +4,8 @@ export type IconName =
   | 'Home' | 'Learn' | 'Exam' | 'Profile' | 'Back' | 'Play' | 'Lock'
   | 'Unlock' | 'CheckCircle' | 'CloudDownload' | 'Share' | 'Refresh' | 'Settings'
   | 'ArrowRight' | 'Search' | 'X' | 'Medal' | 'VerifiedCheck' | 'Clock'
-  | 'Book' | 'Logo' | 'User' | 'ChevronDown' | 'Check' | 'Eye' | 'Plus';
+  | 'Book' | 'ExamDuration' | 'ExamQuestionCount' | 'ExamPassScore'
+  | 'Logo' | 'User' | 'ChevronDown' | 'Check' | 'Eye' | 'Plus';
 
 const ICONS: Record<IconName, string> = {
   Home: '\ue6bb',
@@ -27,6 +28,9 @@ const ICONS: Record<IconName, string> = {
   VerifiedCheck: '\ue656',
   Clock: '◷',
   Book: '▤',
+  ExamDuration: '\ue65f',
+  ExamQuestionCount: '\ue691',
+  ExamPassScore: '\ue7c2',
   Logo: '✦',
   User: '●',
   ChevronDown: '⌄',

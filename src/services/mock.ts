@@ -4,6 +4,8 @@ import {
   CourseListResponse,
   ExamResponse,
   ExamResultResponse,
+  ExamStartRequest,
+  ExamStartResponse,
   ExamSubmitRequest,
   ExamSubmitResponse,
   HomeResponse,
@@ -167,6 +169,7 @@ export const mockExamData: ExamResponse = {
       summaryItems: [
         { type: 'duration', label: '考试时间', value: '30 分钟' },
         { type: 'questionCount', label: '题目数量', value: '6 题' },
+        { type: 'passScore', label: '及格分数', value: '70 分' },
       ],
       requirementTitle: '考试要求说明',
       requirements: [
@@ -193,6 +196,21 @@ export const mockExamData: ExamResponse = {
     ],
   },
 };
+
+export async function mockStartExam(request: ExamStartRequest): Promise<ExamStartResponse> {
+  await delay(MOCK_DELAY);
+  return {
+    code: 0,
+    des: '开始考试成功',
+    data: {
+      examRecordId: Date.now(),
+      quizId: request.chapterId || 9,
+      status: 'in_progress',
+      durationSeconds: mockExamData.data.durationSeconds,
+      remainingSeconds: mockExamData.data.remainingSeconds,
+    },
+  };
+}
 
 export async function mockSubmitExam(request: ExamSubmitRequest): Promise<ExamSubmitResponse> {
   await delay(MOCK_DELAY);
