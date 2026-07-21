@@ -94,8 +94,8 @@ export type HomeResponse = ApiResponse<{
 
 export type CourseListResponse = ApiResponse<{ list: Course[] }>;
 
-export type ChapterType = 'video' | 'image' | 'pdf' | 'test';
-export type ChapterStatus = 'playing' | 'completed' | 'locked';
+export type ChapterType = 'video' | 'image' | 'pdf' | 'test' | 'exam';
+export type ChapterStatus = 'playing' | 'completed' | 'unlocked' | 'locked';
 
 export interface Chapter {
   id: number;

@@ -22,6 +22,10 @@ function formatDuration(seconds: number): string {
   return parts.join('');
 }
 
+function isExamChapter(item: Chapter): boolean {
+  return item.type === 'test' || item.type === 'exam';
+}
+
 export default function CoursePlayerPage() {
   const router = useRouter();
   const courseId = router.params.courseId || '';
@@ -67,21 +71,30 @@ export default function CoursePlayerPage() {
     if (isCurrent) return '正在播放';
     if (item.type === 'image') return '图片资料';
     if (item.type === 'pdf') return 'PDF资料';
-    if (item.type === 'test') return '考试测验';
+    if (isExamChapter(item)) return '考试测验';
     return `时长 ${formatDuration(item.spendTime)}`;
   };
 
-  const getCatalogIconName = (item: Chapter): IconName => {
-    if (item.status === 'locked' && item.type === 'test') return 'Lock';
+  const getCatalogIconName = (item: Chapter, isCurrent: boolean): IconName | null => {
+    if (item.status === 'locked') return 'Lock';
     if (item.status === 'completed') return 'CheckCircle';
-    if (item.type === 'test') return 'Exam';
-    if (item.type === 'image' || item.type === 'pdf') return 'Book';
-    return 'Play';
+    if (isCurrent) return 'Play';
+    if (item.status === 'unlocked') return 'Unlock';
+    return null;
+  };
+
+  const getCatalogIconClassName = (item: Chapter, isCurrent: boolean): string => {
+    const classes = ['catalog-status-icon'];
+    if (item.status === 'completed' || isCurrent) classes.push('highlight');
+    if (item.status === 'locked') classes.push('locked');
+    if (item.status === 'unlocked') classes.push('unlocked');
+    return classes.join(' ');
   };
 
   const handleCatalogItemPress = (item: Chapter) => {
-    if (item.status === 'locked' && item.type === 'test') return;
-    if (item.type === 'test') {
+    if (item.status === 'locked') return;
+    if (isExamChapter(item)) {
+      if (playingItemId !== null) reportPlayProgress(playingItemId, currentTimeRef.current);
       Taro.navigateTo({ url: `/pages/exam/index?courseId=${courseId}&chapterId=${item.id}` });
       return;
     }
@@ -89,6 +102,9 @@ export default function CoursePlayerPage() {
       if (playingItemId !== null) reportPlayProgress(playingItemId, currentTimeRef.current);
       Taro.navigateTo({
         url: `/pages/resource-preview/index?type=${item.type}&url=${encodeURIComponent(item.url || '')}&title=${encodeURIComponent(item.name)}`,
+        success: () => {
+          reportPlayProgress(item.id, 1);
+        },
       });
       return;
     }
@@ -143,6 +159,7 @@ export default function CoursePlayerPage() {
             <ScrollView scrollY className="player-scroll">
               {activeTab === 'catalog' ? chapters.map(item => {
                 const isCurrent = item.id === playingItemId;
+                const catalogIconName = getCatalogIconName(item, isCurrent);
                 return (
                   <View key={item.id} className={`catalog-item ${isCurrent ? 'current' : ''}`} onClick={() => handleCatalogItemPress(item)}>
                     <Text className="catalog-index">{item.index}</Text>
@@ -150,7 +167,7 @@ export default function CoursePlayerPage() {
                       <Text className="catalog-name">{item.name}</Text>
                       <Text className="catalog-meta">{getCatalogMeta(item, isCurrent)}</Text>
                     </View>
-                    <Icon name={getCatalogIconName(item)} />
+                    {catalogIconName ? <Icon name={catalogIconName} className={getCatalogIconClassName(item, isCurrent)} /> : null}
                   </View>
                 );
               }) : (

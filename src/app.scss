@@ -1,3 +1,18 @@
+@font-face {
+  font-family: "iconfont";
+  src: url("https://at.alicdn.com/t/c/font_5213781_v41r5b7snql.woff2?t=1784615285656") format("woff2"),
+       url("https://at.alicdn.com/t/c/font_5213781_v41r5b7snql.woff?t=1784615285656") format("woff"),
+       url("https://at.alicdn.com/t/c/font_5213781_v41r5b7snql.ttf?t=1784615285656") format("truetype");
+}
+
+.iconfont {
+  font-family: "iconfont", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: inherit;
+  font-style: normal;
+  line-height: 1;
+  text-rendering: auto;
+}
+
 page {
   min-height: 100%;
   background: #f8fafc;
@@ -1102,6 +1117,22 @@ button::after {
   margin-top: 8px;
   color: inherit;
   font-size: 23px;
+}
+
+.catalog-status-icon {
+  flex-shrink: 0;
+  margin-left: 24px;
+  font-size: 34px;
+  color: #98a2b3;
+}
+
+.catalog-status-icon.highlight,
+.catalog-status-icon.unlocked {
+  color: #4f8ef7;
+}
+
+.catalog-status-icon.locked {
+  color: #98a2b3;
 }
 
 .resource-preview-page {
