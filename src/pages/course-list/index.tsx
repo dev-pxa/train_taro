@@ -19,6 +19,7 @@ export default function CourseListPage() {
   const { data, loading, error, fetchData } = useFetchData<CourseListResponse['data']>();
   const navMetrics = useMemo(getCustomNavMetrics, []);
   const navHeight = navMetrics.statusBarHeight + navMetrics.navBarHeight;
+  const filterHeight = Taro.pxTransform(COURSE_LIST_FILTER_HEIGHT);
 
   const loadTabs = useCallback(async () => {
     setTabsLoading(true);
@@ -88,7 +89,7 @@ export default function CourseListPage() {
             <Text className="filter-sort">最新 ⌄</Text>
           </View>
         </View>
-        <View style={{ height: `${COURSE_LIST_FILTER_HEIGHT}px` }} />
+        <View style={{ height: filterHeight }} />
 
         {loading || tabsLoading ? <View className="loading-state"><Text className="loading-text">加载中...</Text></View> : null}
         {tabsError ? (
@@ -96,7 +97,7 @@ export default function CourseListPage() {
         ) : error || !data ? (
           !loading ? <ErrorState message={error || '数据加载失败'} onRetry={() => fetchData(() => fetchCourseList(activeFilter))} /> : null
         ) : (
-          <ScrollView scrollY className="course-list-scroll" style={{ height: `calc(100vh - ${navHeight + COURSE_LIST_FILTER_HEIGHT}px)` }}>
+          <ScrollView scrollY className="course-list-scroll" style={{ height: `calc(100vh - ${navHeight}px - ${filterHeight})` }}>
             {courses.length ? (
               <View className="course-grid course-grid-page">
                 {courses.map(course => <CourseCard key={course.id} course={course} onPress={openCourse} />)}
