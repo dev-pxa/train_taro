@@ -1,9 +1,10 @@
 import Taro from '@tarojs/taro';
 import {
   CertificateDetailResponse,
-  CourseCategory,
+  CourseListFilter,
   CourseDetailResponse,
   CourseListResponse,
+  CourseTabsResponse,
   ExamResponse,
   ExamResultResponse,
   ExamStartRequest,
@@ -23,6 +24,7 @@ import { getToken } from './storage';
 import {
   USE_MOCK,
   buildMockCourseList,
+  mockCourseTabs,
   logMockProgress,
   mockCourseDetailData,
   mockDelay,
@@ -98,8 +100,14 @@ export async function login(loginRequest: LoginRequest): Promise<LoginResponse> 
   return response.data;
 }
 
-export async function fetchCourseList(type: CourseCategory = 'all'): Promise<CourseListResponse> {
-  return USE_MOCK ? mockDelay(buildMockCourseList(type)) : request<CourseListResponse>(`/courses?type=${type}`);
+export async function fetchCourseTabs(): Promise<CourseTabsResponse> {
+  return USE_MOCK ? mockDelay(mockCourseTabs) : request<CourseTabsResponse>('/course-tabs');
+}
+
+export async function fetchCourseList(filter: CourseListFilter = {}): Promise<CourseListResponse> {
+  return USE_MOCK
+    ? mockDelay(buildMockCourseList(filter))
+    : request<CourseListResponse>('/courses', { method: 'GET', data: filter });
 }
 
 export async function fetchProfile(): Promise<ProfileResponse> {

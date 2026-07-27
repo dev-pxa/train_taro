@@ -49,7 +49,23 @@ export interface LoginResponse {
 export type LoginApiResponse = ApiResponse<LoginResponse>;
 
 export type CourseType = 'micro' | 'series';
-export type CourseCategory = 'all' | 'series' | 'micro' | 'required' | 'certificate' | 'safety' | 'skill';
+
+export type CourseTabKind = 'ALL' | 'TYPE' | 'CATEGORY';
+
+export interface CourseTab {
+  key: string;
+  name: string;
+  kind: CourseTabKind;
+  type?: 0 | 1;
+  categoryId?: number;
+}
+
+export type CourseTabsResponse = ApiResponse<CourseTab[]>;
+
+export interface CourseListFilter {
+  type?: CourseType;
+  categoryId?: number;
+}
 
 export interface CarouselItem {
   id: string;
@@ -92,7 +108,7 @@ export type HomeResponse = ApiResponse<{
   courseModules: CourseModule[];
 }>;
 
-export type CourseListResponse = ApiResponse<{ list: Course[] }>;
+export type CourseListResponse = ApiResponse<{ list: Course[]; total?: number }>;
 
 export type ChapterType = 'video' | 'image' | 'pdf' | 'test' | 'exam';
 export type ChapterStatus = 'playing' | 'completed' | 'unlocked' | 'locked';

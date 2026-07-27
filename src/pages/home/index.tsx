@@ -22,7 +22,7 @@ export default function HomePage() {
   };
 
   const openCourseModule = (moduleType: string) => {
-    Taro.setStorageSync('course_list_pending_category', moduleType);
+    Taro.setStorageSync('course_list_pending_tab', moduleType);
     Taro.switchTab({ url: '/pages/course-list/index' });
   };
 

@@ -1,44 +1,66 @@
-import { useEffect, useMemo, useState } from 'react';
-import Taro, { useDidShow, useRouter } from '@tarojs/taro';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Taro, { useDidShow } from '@tarojs/taro';
 import { ScrollView, Text, View } from '@tarojs/components';
 import AuthGate from '../../components/AuthGate';
 import CourseCard from '../../components/CourseCard';
 import CustomNavBar, { getCustomNavMetrics } from '../../components/CustomNavBar';
 import ErrorState from '../../components/ErrorState';
 import { useFetchData } from '../../hooks/useFetchData';
-import { fetchCourseList } from '../../services/api';
-import { Course, CourseCategory, CourseListResponse } from '../../types';
+import { fetchCourseList, fetchCourseTabs } from '../../services/api';
+import { Course, CourseListFilter, CourseListResponse, CourseTab } from '../../types';
 
 const COURSE_LIST_FILTER_HEIGHT = 162;
 
-const CATEGORY_TABS: { key: CourseCategory; label: string }[] = [
-  { key: 'all', label: '全部' },
-  { key: 'series', label: '系列课程' },
-  { key: 'micro', label: '微课程' },
-  { key: 'required', label: '岗位必修' },
-  { key: 'certificate', label: '专业证书' },
-  { key: 'safety', label: '安全专题' },
-  { key: 'skill', label: '技能提升' },
-];
-
 export default function CourseListPage() {
-  const router = useRouter();
-  const initialCategory = (router.params.category as CourseCategory) || 'all';
-  const [activeCategory, setActiveCategory] = useState<CourseCategory>(initialCategory);
+  const [tabs, setTabs] = useState<CourseTab[]>([]);
+  const [tabsLoading, setTabsLoading] = useState(true);
+  const [tabsError, setTabsError] = useState('');
+  const [activeTabKey, setActiveTabKey] = useState('all');
   const { data, loading, error, fetchData } = useFetchData<CourseListResponse['data']>();
   const navMetrics = useMemo(getCustomNavMetrics, []);
   const navHeight = navMetrics.statusBarHeight + navMetrics.navBarHeight;
 
+  const loadTabs = useCallback(async () => {
+    setTabsLoading(true);
+    setTabsError('');
+    try {
+      const response = await fetchCourseTabs();
+      if (response.code !== 0 || !Array.isArray(response.data)) {
+        throw new Error(response.desc || response.des || '获取课程分类失败');
+      }
+      setTabs(response.data);
+      setActiveTabKey(current => response.data.some(tab => tab.key === current) ? current : 'all');
+    } catch (loadError) {
+      setTabsError(loadError instanceof Error ? loadError.message : '获取课程分类失败');
+    } finally {
+      setTabsLoading(false);
+    }
+  }, []);
+
+  const activeTab = tabs.find(tab => tab.key === activeTabKey);
+  const activeFilter = useMemo<CourseListFilter>(() => {
+    if (activeTab?.kind === 'TYPE') {
+      return { type: activeTab.type === 1 ? 'series' : 'micro' };
+    }
+    if (activeTab?.kind === 'CATEGORY' && activeTab.categoryId != null) {
+      return { categoryId: activeTab.categoryId };
+    }
+    return {};
+  }, [activeTab]);
+
   useEffect(() => {
-    fetchData(() => fetchCourseList(activeCategory));
-  }, [activeCategory, fetchData]);
+    if (activeTab) {
+      fetchData(() => fetchCourseList(activeFilter));
+    }
+  }, [activeFilter, activeTab, fetchData]);
 
   useDidShow(() => {
-    const pendingCategory = Taro.getStorageSync<CourseCategory>('course_list_pending_category');
-    if (pendingCategory) {
-      Taro.removeStorageSync('course_list_pending_category');
-      setActiveCategory(pendingCategory);
+    const pendingTab = Taro.getStorageSync<string>('course_list_pending_tab');
+    if (pendingTab) {
+      Taro.removeStorageSync('course_list_pending_tab');
+      setActiveTabKey(pendingTab);
     }
+    loadTabs();
   });
 
   const openCourse = (course: Course) => {
@@ -54,23 +76,25 @@ export default function CourseListPage() {
 
         <View className="course-list-fixed-tools" style={{ top: `${navHeight}px` }}>
           <ScrollView scrollX className="category-tabs" showScrollbar={false}>
-            {CATEGORY_TABS.map(tab => (
-              <Text key={tab.key} className={`category-tab ${tab.key === activeCategory ? 'active' : ''}`} onClick={() => setActiveCategory(tab.key)}>
-                {tab.label}
+            {tabs.map(tab => (
+              <Text key={tab.key} className={`category-tab ${tab.key === activeTabKey ? 'active' : ''}`} onClick={() => setActiveTabKey(tab.key)}>
+                {tab.name}
               </Text>
             ))}
           </ScrollView>
 
           <View className="filter-bar">
-            <Text className="filter-result">共 {courses.length} 门课程</Text>
+            <Text className="filter-result">共 {data?.total ?? courses.length} 门课程</Text>
             <Text className="filter-sort">最新 ⌄</Text>
           </View>
         </View>
         <View style={{ height: `${COURSE_LIST_FILTER_HEIGHT}px` }} />
 
-        {loading ? <View className="loading-state"><Text className="loading-text">加载中...</Text></View> : null}
-        {error || !data ? (
-          !loading ? <ErrorState message={error || '数据加载失败'} onRetry={() => fetchData(() => fetchCourseList(activeCategory))} /> : null
+        {loading || tabsLoading ? <View className="loading-state"><Text className="loading-text">加载中...</Text></View> : null}
+        {tabsError ? (
+          !tabsLoading ? <ErrorState message={tabsError} onRetry={loadTabs} /> : null
+        ) : error || !data ? (
+          !loading ? <ErrorState message={error || '数据加载失败'} onRetry={() => fetchData(() => fetchCourseList(activeFilter))} /> : null
         ) : (
           <ScrollView scrollY className="course-list-scroll" style={{ height: `calc(100vh - ${navHeight + COURSE_LIST_FILTER_HEIGHT}px)` }}>
             {courses.length ? (

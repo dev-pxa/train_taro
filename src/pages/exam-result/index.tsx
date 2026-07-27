@@ -89,7 +89,7 @@ export default function ExamResultPage() {
                     Taro.switchTab({ url: '/pages/home/index' });
                     return;
                   }
-                  Taro.setStorageSync('course_list_pending_category', 'required');
+                  Taro.setStorageSync('course_list_pending_tab', 'all');
                   Taro.switchTab({ url: '/pages/course-list/index' });
                 }}
               >

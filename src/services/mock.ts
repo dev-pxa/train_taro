@@ -1,7 +1,9 @@
 import {
   CertificateDetailResponse,
   CourseDetailResponse,
+  CourseListFilter,
   CourseListResponse,
+  CourseTabsResponse,
   ExamResponse,
   ExamResultResponse,
   ExamStartRequest,
@@ -281,18 +283,35 @@ export async function mockFetchCertificateDetail(certificateId: number): Promise
   };
 }
 
-export function buildMockCourseList(category = 'all'): CourseListResponse {
+export const mockCourseTabs: CourseTabsResponse = {
+  code: 0,
+  desc: '操作成功',
+  data: [
+    { key: 'all', name: '全部', kind: 'ALL' },
+    { key: 'series', name: '系列课程', kind: 'TYPE', type: 1 },
+    { key: 'micro', name: '微课程', kind: 'TYPE', type: 0 },
+    { key: 'category:101', name: '安全专题', kind: 'CATEGORY', categoryId: 101 },
+    { key: 'category:102', name: '技能提升', kind: 'CATEGORY', categoryId: 102 },
+  ],
+};
+
+const MOCK_COURSE_CATEGORY_IDS: Record<string, number[]> = {
+  course_001: [101],
+  course_003: [102],
+  course_005: [101, 102],
+};
+
+export function buildMockCourseList(filter: CourseListFilter = {}): CourseListResponse {
   const list = mockHomeData.data.courseModules.reduce<Array<typeof mockHomeData.data.courseModules[number]['courses'][number] & { moduleType: string }>>((result, module) => {
     module.courses.forEach(course => result.push({ ...course, moduleType: module.moduleType }));
     return result;
   }, []);
   const filtered = list.filter(course => {
-    if (category === 'all') return true;
-    if (category === 'series' || category === 'micro') return course.type === category;
-    if (category === 'required' || category === 'certificate') return course.moduleType === category;
-    return course.label?.includes(category === 'safety' ? '安全' : '精选') || course.type === 'series';
+    if (filter.type && course.type !== filter.type) return false;
+    if (filter.categoryId && !(MOCK_COURSE_CATEGORY_IDS[course.id] || []).includes(filter.categoryId)) return false;
+    return true;
   }).map(({ moduleType: _moduleType, ...course }) => course);
-  return { code: 0, desc: '查询成功', data: { list: filtered } };
+  return { code: 0, desc: '查询成功', data: { list: filtered, total: filtered.length } };
 }
 
 export function logMockProgress(request: UpdatePlayProgressRequest): void {
