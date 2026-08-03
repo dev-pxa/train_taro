@@ -4,6 +4,7 @@ import {
   CourseListFilter,
   CourseListResponse,
   CourseTabsResponse,
+  ExamListResponse,
   ExamResponse,
   ExamResultResponse,
   ExamStartRequest,
@@ -249,6 +250,73 @@ export async function mockFetchExamResult(examRecordId: string | number): Promis
         title: passed ? '认证记录已更新' : '建议完成补强学习',
         desc: passed ? '你可以在个人中心查看证书和认证记录。' : '距离 70 分通过线还有提升空间，建议复习课程重点后再考。',
       },
+    },
+  };
+}
+
+export async function mockFetchExamList(): Promise<ExamListResponse> {
+  await delay(MOCK_DELAY);
+  return {
+    code: 0,
+    desc: '查询成功',
+    data: {
+      pendingExams: [
+        {
+          quizId: 9,
+          courseId: 1,
+          title: '智能家居安装与调试能力认证',
+          durationSeconds: 1800,
+          questionCount: 20,
+          note: '截止 2026.05.30 18:00 · 安装岗必修',
+          latestStatus: 'not_started',
+        },
+        {
+          quizId: 10,
+          courseId: 2,
+          title: '智能门锁售后服务规范',
+          durationSeconds: 1200,
+          questionCount: 15,
+          note: '截止 2026.06.02 12:00 · 售后岗必修',
+          latestStatus: 'fail',
+        },
+      ],
+      records: [
+        {
+          examRecordId: 1001,
+          quizId: 9,
+          courseId: 1,
+          title: '智能家居安装与调试能力认证',
+          score: 86,
+          passed: true,
+          statusText: '已通过',
+          note: '2026.05.28 完成 · 可查看证书',
+          valid: true,
+        },
+        {
+          examRecordId: 1002,
+          quizId: 11,
+          courseId: 3,
+          title: '全屋智能基础知识测评',
+          score: 58,
+          passed: false,
+          statusText: '未通过',
+          note: '2026.05.20 完成 · 可重新考试',
+          valid: true,
+        },
+        {
+          examRecordId: 1003,
+          quizId: 12,
+          courseId: 4,
+          title: '客户沟通与服务标准',
+          score: 92,
+          passed: true,
+          statusText: '已失效',
+          note: '2026.04.18 完成 · 考试已失效',
+          valid: false,
+          invalidReason: 'COURSE_EXAM_CHANGED',
+          invalidToast: '该考试记录已失效，暂不可查看成绩详情。',
+        },
+      ],
     },
   };
 }

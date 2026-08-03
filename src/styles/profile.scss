@@ -1,0 +1,150 @@
+.profile-header,
+.stats-card,
+.recent-list,
+.menu-group,
+.section-card,
+.tip-card,
+.preview-card {
+  margin: 24px 32px 0;
+  padding: 28px;
+}
+
+.profile-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-user {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-name {
+  display: block;
+  color: #1a1a1a;
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.profile-company {
+  display: block;
+  margin-top: 8px;
+  color: #667085;
+  font-size: 24px;
+}
+
+.edit-button {
+  height: 54px;
+  padding: 0 22px;
+  border-radius: 27px;
+  color: #4f8ef7;
+  background: rgba(79, 142, 247, 0.12);
+  font-size: 24px;
+  line-height: 54px;
+}
+
+.stats-card {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  text-align: center;
+}
+
+.stat-item {
+  flex: 1;
+}
+
+.stat-value {
+  display: block;
+  color: #1a1a1a;
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.stat-label {
+  display: block;
+  margin-top: 8px;
+  color: #667085;
+  font-size: 20px;
+}
+
+.learning-record {
+  min-height: 116px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 18px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.learning-thumb {
+  width: 112px;
+  height: 76px;
+  border-radius: 16px;
+}
+
+.learning-info {
+  flex: 1;
+  margin-left: 18px;
+}
+
+.learning-title {
+  display: block;
+  font-size: 27px;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.learning-time {
+  display: block;
+  margin-top: 8px;
+  font-size: 23px;
+  color: #667085;
+}
+
+.play-pill {
+  width: 54px;
+  height: 54px;
+  border-radius: 27px;
+  background: rgba(79, 142, 247, 0.12);
+  color: #4f8ef7;
+  text-align: center;
+  line-height: 54px;
+}
+
+.menu-item {
+  height: 86px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  color: #1a1a1a;
+  font-size: 28px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.logout-btn,
+.debug-entry {
+  margin: 24px 32px 0;
+  height: 88px;
+  border-radius: 24px;
+  text-align: center;
+  line-height: 88px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.logout-btn {
+  color: #ef4444;
+  background: #fff1f2;
+}
+
+.debug-entry {
+  color: #4f8ef7;
+  background: rgba(79, 142, 247, 0.12);
+}
+

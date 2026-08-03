@@ -122,6 +122,7 @@ export interface Chapter {
   status: ChapterStatus;
   url: string;
   initialTime: number;
+  examRecordId?: number;
 }
 
 export interface CourseDetail {
@@ -212,6 +213,37 @@ export interface ExamSubmitRequest {
 }
 
 export type ExamSubmitResponse = ApiResponse<{ examRecordId: string }>;
+
+export interface PendingExamItem {
+  quizId: number;
+  courseId?: number | null;
+  title: string;
+  durationSeconds: number;
+  questionCount: number;
+  note: string;
+  latestStatus: 'not_started' | 'in_progress' | 'fail';
+}
+
+export interface ExamRecordListItem {
+  examRecordId: number;
+  quizId: number;
+  courseId?: number | null;
+  title: string;
+  score: number;
+  passed: boolean;
+  statusText: string;
+  note: string;
+  valid: boolean;
+  invalidReason?: string;
+  invalidToast?: string;
+}
+
+export interface ExamListData {
+  pendingExams: PendingExamItem[];
+  records: ExamRecordListItem[];
+}
+
+export type ExamListResponse = ApiResponse<ExamListData>;
 
 export interface ExamResult {
   examRecordId: number;

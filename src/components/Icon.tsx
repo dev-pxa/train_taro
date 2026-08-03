@@ -5,7 +5,7 @@ export type IconName =
   | 'Unlock' | 'CheckCircle' | 'CloudDownload' | 'Share' | 'Refresh' | 'Settings'
   | 'ArrowRight' | 'Search' | 'X' | 'Medal' | 'VerifiedCheck' | 'Clock'
   | 'Book' | 'ExamDuration' | 'ExamQuestionCount' | 'ExamPassScore'
-  | 'Logo' | 'User' | 'ChevronDown' | 'Check' | 'Eye' | 'Plus';
+  | 'Logo' | 'User' | 'ChevronDown' | 'Check' | 'Eye' | 'Plus' | 'Info';
 
 const ICONS: Record<IconName, string> = {
   Home: '\ue6bb',
@@ -17,26 +17,27 @@ const ICONS: Record<IconName, string> = {
   Lock: '\ue6c0',
   Unlock: '\ue6c2',
   CheckCircle: '\ue656',
-  CloudDownload: '⇩',
-  Share: '↗',
-  Refresh: '↻',
+  CloudDownload: '\ue703',
+  Share: '\ue6f3',
+  Refresh: '\ue6a4',
   Settings: '⚙',
   ArrowRight: '\ue6a3',
-  Search: '⌕',
-  X: '×',
-  Medal: '◉',
+  Search: '\ue65c',
+  X: '\ue658',
+  Medal: '\ue7c2',
   VerifiedCheck: '\ue656',
-  Clock: '◷',
-  Book: '▤',
+  Clock: '\ue65f',
+  Book: '\ue7ab',
   ExamDuration: '\ue65f',
   ExamQuestionCount: '\ue691',
   ExamPassScore: '\ue7c2',
   Logo: '✦',
-  User: '●',
-  ChevronDown: '⌄',
+  User: '\ue7d9',
+  ChevronDown: '\ue749',
   Check: '✓',
-  Eye: '◌',
-  Plus: '+',
+  Eye: '\ue637',
+  Plus: '\ue6da',
+  Info: '\ue6e4',
 };
 
 export default function Icon({ name, className = '' }: { name: IconName; className?: string }) {

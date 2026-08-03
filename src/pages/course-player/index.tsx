@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Taro, { useRouter } from '@tarojs/taro';
+import Taro, { useDidShow, useRouter } from '@tarojs/taro';
 import { ScrollView, Text, Video, View } from '@tarojs/components';
 import AuthGate from '../../components/AuthGate';
 import CustomNavBar from '../../components/CustomNavBar';
@@ -34,19 +34,25 @@ export default function CoursePlayerPage() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const currentTimeRef = useRef(0);
   const playingItemIdRef = useRef<number | null>(null);
-  const { data, loading, error, fetchData } = useFetchData<CourseDetail>();
+  const { data, loading, error, fetchData, refresh } = useFetchData<CourseDetail>();
 
   useEffect(() => {
     if (courseId) fetchData(() => fetchCourseDetail(courseId));
   }, [courseId, fetchData]);
 
+  useDidShow(() => {
+    if (courseId && data) refresh();
+  });
+
   useEffect(() => {
-    if (data?.chapters.length && playingItemId === null) {
+    if (!data?.chapters.length) return;
+    setChapters(data.chapters);
+    if (playingItemId === null) {
       const preferred = data.chapters[data.currentChapterIndex];
       const target = preferred?.type === 'video' ? preferred : data.chapters.find(item => item.type === 'video');
-      setPlayingItemId(target?.id ?? null);
-      setChapters(data.chapters);
-      playingItemIdRef.current = target?.id ?? null;
+      const targetId = target?.id ?? null;
+      setPlayingItemId(targetId);
+      playingItemIdRef.current = targetId;
       currentTimeRef.current = target?.initialTime ?? 0;
     }
   }, [data, playingItemId]);
@@ -59,19 +65,27 @@ export default function CoursePlayerPage() {
     updatePlayProgress({ courseId, chapterId, playPosition }).catch(() => undefined);
   }, [courseId]);
 
+  const currentPlayingItem = useMemo(() => chapters.find(item => item.id === playingItemId && item.type === 'video') || chapters.find(item => item.type === 'video'), [chapters, playingItemId]);
+
+  const handleVideoEnded = useCallback(() => {
+    if (!currentPlayingItem) return;
+    const completedPosition = currentPlayingItem.spendTime > 0 ? currentPlayingItem.spendTime : currentTimeRef.current;
+    currentTimeRef.current = completedPosition;
+    reportPlayProgress(currentPlayingItem.id, completedPosition);
+    setChapters(prev => prev.map(item => item.id === currentPlayingItem.id ? { ...item, status: 'completed' } : item));
+  }, [currentPlayingItem, reportPlayProgress]);
+
   useEffect(() => () => {
     if (playingItemIdRef.current !== null) {
       reportPlayProgress(playingItemIdRef.current, currentTimeRef.current);
     }
   }, [reportPlayProgress]);
 
-  const currentPlayingItem = useMemo(() => chapters.find(item => item.id === playingItemId && item.type === 'video') || chapters.find(item => item.type === 'video'), [chapters, playingItemId]);
-
   const getCatalogMeta = (item: Chapter, isCurrent: boolean): string => {
     if (isCurrent) return '正在播放';
     if (item.type === 'image') return '图片资料';
     if (item.type === 'pdf') return 'PDF资料';
-    if (isExamChapter(item)) return '考试测验';
+    if (isExamChapter(item)) return item.status === 'completed' ? '考试已通过' : '考试测验';
     return `时长 ${formatDuration(item.spendTime)}`;
   };
 
@@ -95,6 +109,15 @@ export default function CoursePlayerPage() {
     if (item.status === 'locked') return;
     if (isExamChapter(item)) {
       if (playingItemId !== null) reportPlayProgress(playingItemId, currentTimeRef.current);
+      if (item.status === 'completed') {
+        if (item.examRecordId) {
+          Taro.navigateTo({ url: `/pages/exam-result/index?examRecordId=${item.examRecordId}&courseId=${courseId}&chapterId=${item.id}` });
+        } else {
+          Taro.showToast({ title: '考试已通过，成绩记录加载中', icon: 'none' });
+          refresh();
+        }
+        return;
+      }
       Taro.navigateTo({ url: `/pages/exam/index?courseId=${courseId}&chapterId=${item.id}` });
       return;
     }
@@ -131,6 +154,7 @@ export default function CoursePlayerPage() {
                   controls
                   autoplay
                   onTimeUpdate={event => { currentTimeRef.current = event.detail.currentTime; }}
+                  onEnded={handleVideoEnded}
                 />
               ) : (
                 <View className="video-empty"><Text className="video-empty-text">暂无视频章节</Text></View>
