@@ -110,6 +110,51 @@ export type HomeResponse = ApiResponse<{
 
 export type CourseListResponse = ApiResponse<{ list: Course[]; total?: number }>;
 
+export interface ProductCategoryChild {
+  id: number;
+  name: string;
+}
+
+export interface ProductCategory {
+  id: number;
+  name: string;
+  children: ProductCategoryChild[];
+}
+
+export type ProductCategoriesResponse = ApiResponse<ProductCategory[]>;
+
+export interface ProductListFilter {
+  primaryCategoryId?: number;
+  secondaryCategoryId?: number;
+}
+
+export interface ProductListItem {
+  id: number;
+  name: string;
+  description: string;
+  imageUrl: string;
+}
+
+export type ProductListResponse = ApiResponse<{
+  list: ProductListItem[];
+  total: number;
+}>;
+
+export interface ProductSpec {
+  title: string;
+  content: string;
+}
+
+export interface ProductDetail {
+  id: number;
+  name: string;
+  description: string;
+  videoUrl?: string | null;
+  specs: ProductSpec[];
+}
+
+export type ProductDetailResponse = ApiResponse<ProductDetail>;
+
 export type ChapterType = 'video' | 'image' | 'pdf' | 'test' | 'exam';
 export type ChapterStatus = 'playing' | 'completed' | 'unlocked' | 'locked';
 

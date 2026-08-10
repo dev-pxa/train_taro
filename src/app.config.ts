@@ -4,7 +4,9 @@ export default {
     "pages/register/index",
     "pages/home/index",
     "pages/course-list/index",
+    "pages/product-guide/index",
     "pages/exam-center/index",
+    "pages/product-detail/index",
     "pages/course-player/index",
     "pages/resource-preview/index",
     "pages/exam/index",
@@ -37,6 +39,12 @@ export default {
         text: "学习",
         iconPath: "assets/tabbar/learn.png",
         selectedIconPath: "assets/tabbar/learn-active.png"
+      },
+      {
+        pagePath: "pages/product-guide/index",
+        text: "产品",
+        iconPath: "assets/tabbar/product.png",
+        selectedIconPath: "assets/tabbar/product-active.png"
       },
       {
         pagePath: "pages/exam-center/index",

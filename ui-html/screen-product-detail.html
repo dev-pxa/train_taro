@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>企训通 - 产品详情</title>
+    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-start: #4f8ef7;
+            --primary-end: #7c6efc;
+            --bg: #f8f9fb;
+            --surface: #ffffff;
+            --fg: #1a1a2e;
+            --fg-2: #4b5563;
+            --muted: #8a8a9a;
+            --border: #e8e8f0;
+            --success: #14c9a5;
+            --warning: #ffb020;
+            --danger: #ff5a5a;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'SF Pro Text', system-ui, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--fg);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        button {
+            font: inherit;
+            border: 0;
+            appearance: none;
+            background: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background: var(--bg);
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-bar {
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            background: var(--surface);
+            flex-shrink: 0;
+        }
+
+        .status-time {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--fg);
+        }
+
+        .status-icons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            color: var(--fg);
+        }
+
+        .header {
+            height: 62px;
+            padding: 8px 20px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface);
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--bg);
+            color: var(--fg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.16s ease, transform 0.16s ease;
+        }
+
+        .icon-btn:hover {
+            background: color-mix(in oklab, var(--bg), var(--surface) 48%);
+        }
+
+        .icon-btn:active,
+        .copy-btn:active,
+        .ask-btn:active {
+            transform: translateY(1px);
+        }
+
+        .icon-btn:focus-visible,
+        .copy-btn:focus-visible,
+        .ask-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 142, 247, 0.18);
+        }
+
+        .page-title {
+            font-size: 17px;
+            font-weight: 850;
+            color: var(--fg);
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 22px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .video-hero {
+            height: 234px;
+            background: var(--fg);
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: linear-gradient(180deg, rgba(26, 26, 46, 0.12), rgba(26, 26, 46, 0.62));
+            pointer-events: none;
+        }
+
+        .video-still {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .video-copy {
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            bottom: 54px;
+            z-index: 2;
+            width: auto;
+        }
+
+        .video-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 9px;
+            border-radius: 10px;
+            background: rgba(26, 26, 46, 0.66);
+            font-size: 12px;
+            font-weight: 850;
+            margin-bottom: 10px;
+        }
+
+        .video-title {
+            font-size: 24px;
+            line-height: 1.14;
+            font-weight: 950;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+
+        .video-subtitle {
+            font-size: 13px;
+            line-height: 1.45;
+            opacity: 0.92;
+            max-width: 27ch;
+        }
+
+        .video-controls {
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            bottom: 16px;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: 30px 1fr 64px 26px;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .play-btn,
+        .fullscreen-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress {
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.32);
+            overflow: hidden;
+        }
+
+        .progress span {
+            display: block;
+            width: 28%;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--primary-start);
+        }
+
+        .section-card {
+            margin: 12px 16px 0;
+            padding: 16px;
+            border-radius: 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+
+        .product-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .brand-mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            margin-right: 5px;
+            border-radius: 7px;
+            background: color-mix(in oklab, var(--primary-start), transparent 88%);
+            color: var(--primary-start);
+            font-size: 13px;
+            font-weight: 950;
+            vertical-align: 2px;
+        }
+
+        .product-name {
+            font-size: 21px;
+            line-height: 1.25;
+            font-weight: 900;
+            letter-spacing: -0.01em;
+        }
+
+        .copy-btn {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: var(--bg);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.16s ease, transform 0.16s ease;
+        }
+
+        .copy-btn:hover {
+            background: color-mix(in oklab, var(--bg), var(--surface) 48%);
+        }
+
+        .price {
+            color: var(--primary-start);
+            font-size: 28px;
+            line-height: 1.2;
+            font-weight: 950;
+            margin-bottom: 8px;
+        }
+
+        .product-desc {
+            font-size: 13px;
+            line-height: 1.65;
+            color: var(--fg-2);
+            font-weight: 620;
+        }
+
+        .ean-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 12px;
+            padding: 7px 10px;
+            border-radius: 10px;
+            background: var(--bg);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 850;
+        }
+
+        .section-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: 900;
+        }
+
+        .ask-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: color-mix(in oklab, var(--primary-start), transparent 90%);
+            color: var(--primary-start);
+            font-size: 12px;
+            font-weight: 850;
+            cursor: pointer;
+            transition: background 0.16s ease, transform 0.16s ease;
+        }
+
+        .ask-btn:hover {
+            background: color-mix(in oklab, var(--primary-start), transparent 86%);
+        }
+
+        .spec-table {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .spec-row {
+            display: grid;
+            grid-template-columns: 108px 1fr;
+            border-bottom: 1px solid var(--border);
+            min-height: 48px;
+        }
+
+        .spec-row:last-child {
+            border-bottom: 0;
+        }
+
+        .spec-label {
+            padding: 13px 12px;
+            color: var(--fg);
+            font-size: 13px;
+            line-height: 1.45;
+            font-weight: 900;
+            background: color-mix(in oklab, var(--bg), var(--surface) 35%);
+            display: flex;
+            align-items: center;
+        }
+
+        .spec-value {
+            padding: 13px 12px;
+            color: var(--fg-2);
+            font-size: 13px;
+            line-height: 1.45;
+            font-weight: 650;
+            display: flex;
+            align-items: center;
+        }
+
+        .unsupported {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--muted);
+        }
+
+        .unsupported-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background: rgba(255, 90, 90, 0.54);
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .more-row {
+            padding: 13px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 760;
+        }
+
+        .toast {
+            position: absolute;
+            left: 50%;
+            top: 96px;
+            z-index: 20;
+            transform: translate(-50%, -8px);
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: rgba(26, 26, 46, 0.9);
+            color: white;
+            font-size: 12px;
+            font-weight: 800;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .home-indicator {
+            height: 22px;
+            background: var(--surface);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 8px;
+            flex-shrink: 0;
+        }
+
+        .home-indicator::after {
+            content: '';
+            width: 134px;
+            height: 5px;
+            background: var(--border);
+            border-radius: 100px;
+        }
+
+        @media (max-width: 430px) {
+            body {
+                padding: 0;
+            }
+
+            .phone-frame {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                box-shadow: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="status-bar">
+            <div class="status-time">9:41</div>
+            <div class="status-icons">
+                <span class="iconify" data-icon="solar:signal-linear"></span>
+                <span class="iconify" data-icon="solar:wifi-linear"></span>
+                <span class="iconify" data-icon="solar:battery-full-linear"></span>
+            </div>
+        </div>
+
+        <header class="header" data-od-id="product-detail-header">
+            <button class="icon-btn" type="button" aria-label="返回产品说明" onclick="window.location.href='screen-product-guide.html'">
+                <span class="iconify" data-icon="solar:alt-arrow-left-linear" style="font-size: 22px;"></span>
+            </button>
+            <div class="page-title">产品详情</div>
+            <button class="icon-btn" type="button" aria-label="分享产品" onclick="showToast('已生成产品分享链接')">
+                <span class="iconify" data-icon="solar:share-linear" style="font-size: 22px;"></span>
+            </button>
+        </header>
+
+        <main class="content" data-od-id="product-detail-content">
+            <section class="video-hero" data-od-id="product-intro-video" aria-label="产品介绍视频">
+                <img class="video-still" src="assets/product-detail-video.png" alt="RG-EAP262(G) V2 产品介绍视频封面">
+                <div class="video-copy">
+                    <div class="video-kicker">
+                        <span class="iconify" data-icon="solar:play-circle-bold"></span>
+                        产品介绍视频
+                    </div>
+                    <h1 class="video-title">无线覆盖<br>部署说明</h1>
+                    <p class="video-subtitle">3 分钟了解吸顶 AP 的安装场景、速率能力与供电方式。</p>
+                </div>
+                <div class="video-controls" aria-hidden="true">
+                    <div class="play-btn">
+                        <span class="iconify" data-icon="solar:play-bold"></span>
+                    </div>
+                    <div class="progress"><span></span></div>
+                    <div>0:08 / 0:58</div>
+                    <div class="fullscreen-btn">
+                        <span class="iconify" data-icon="solar:full-screen-linear"></span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-card" data-od-id="product-summary-card">
+                <div class="product-head">
+                    <h2 class="product-name">
+                        <span class="brand-mark">易</span>
+                        RG-EAP262(G) V2
+                    </h2>
+                    <button class="copy-btn" type="button" onclick="showToast('产品名称已复制')">
+                        <span class="iconify" data-icon="solar:copy-linear"></span>
+                        复制
+                    </button>
+                </div>
+                <div class="price">¥699</div>
+                <p class="product-desc">1775M 双频千兆吸顶 AP，1 个千兆 LAN 口上联，内置天线，支持 2.4GHz / 5GHz 双频通信，支持 AI 智能漫游、PoE 供电和本地供电，适合办公、酒店、门店等无线覆盖场景。</p>
+                <div class="ean-row">
+                    EAN：6971693279841
+                    <span class="iconify" data-icon="solar:copy-linear"></span>
+                </div>
+            </section>
+
+            <section class="section-card" data-od-id="product-spec-card">
+                <div class="section-title-row">
+                    <h2 class="section-title">说明信息</h2>
+                    <button class="ask-btn" type="button" onclick="showToast('已打开问参数入口')">
+                        <span class="iconify" data-icon="solar:chat-round-dots-bold"></span>
+                        问参数
+                    </button>
+                </div>
+
+                <div class="spec-table" aria-label="产品说明信息表格">
+                    <div class="spec-row">
+                        <div class="spec-label">上市时间</div>
+                        <div class="spec-value">2024-04</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-label">产品类型</div>
+                        <div class="spec-value">吸顶 AP</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-label">蓝牙</div>
+                        <div class="spec-value">
+                            <span class="unsupported">
+                                <span class="unsupported-icon">×</span>
+                                不支持
+                            </span>
+                        </div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-label">传输速率</div>
+                        <div class="spec-value">整机最大无线速率：1775Mbps<br>2.4GHz：574Mbps<br>5GHz：1201Mbps</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-label">射频设计</div>
+                        <div class="spec-value">双射频，整机支持 4 条空间流；2.4GHz：2x2 MU-MIMO；5GHz：2x2 MU-MIMO</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-label">Wi-Fi 标准</div>
+                        <div class="spec-value">Wi-Fi 4（IEEE 802.11b/g/n）<br>Wi-Fi 6（IEEE 802.11ax）</div>
+                    </div>
+                    <div class="more-row">
+                        <span>更多</span>
+                        <span class="iconify" data-icon="solar:alt-arrow-down-linear"></span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div class="home-indicator"></div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+
+    <script>
+        const toast = document.getElementById('toast');
+        let toastTimer;
+
+        function showToast(message) {
+            clearTimeout(toastTimer);
+            toast.textContent = message;
+            toast.classList.add('show');
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+        }
+    </script>
+</body>
+</html>

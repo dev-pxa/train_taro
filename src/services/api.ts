@@ -18,6 +18,10 @@ import {
   LoginRequest,
   LoginResponse,
   ProfileResponse,
+  ProductCategoriesResponse,
+  ProductDetailResponse,
+  ProductListFilter,
+  ProductListResponse,
   UpdatePlayProgressRequest,
 } from '../types';
 import { getFullApiBaseUrl } from './environment';
@@ -119,6 +123,26 @@ export async function fetchProfile(): Promise<ProfileResponse> {
 export async function fetchCourseDetail(courseId: string): Promise<CourseDetailResponse> {
   console.log('fetchCourseDetail courseId:', courseId);
   return USE_MOCK ? mockDelay(mockCourseDetailData) : request<CourseDetailResponse>(`/course?id=${courseId}`);
+}
+
+export async function fetchProductCategories(): Promise<ProductCategoriesResponse> {
+  return request<ProductCategoriesResponse>('/product-categories');
+}
+
+export async function fetchProductList(filter: ProductListFilter = {}): Promise<ProductListResponse> {
+  const data = {
+    ...(filter.primaryCategoryId !== undefined
+      ? { primaryCategoryId: filter.primaryCategoryId }
+      : {}),
+    ...(filter.secondaryCategoryId !== undefined
+      ? { secondaryCategoryId: filter.secondaryCategoryId }
+      : {}),
+  };
+  return request<ProductListResponse>('/products', { method: 'GET', data });
+}
+
+export async function fetchProductDetail(productId: string | number): Promise<ProductDetailResponse> {
+  return request<ProductDetailResponse>(`/product?id=${productId}`);
 }
 
 export async function updatePlayProgress(playProgressRequest: UpdatePlayProgressRequest): Promise<{ code: number; desc: string; data: null }> {
