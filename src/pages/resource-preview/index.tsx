@@ -26,6 +26,7 @@ export default function ResourcePreviewPage() {
   const type = isPreviewType(router.params.type) ? router.params.type : null;
   const resourceUrl = useMemo(() => decodeParam(router.params.url), [router.params.url]);
   const title = useMemo(() => decodeParam(router.params.title) || (type === 'pdf' ? 'PDF预览' : '图片预览'), [router.params.title, type]);
+  const downloadable = router.params.downloadable !== '0';
 
   const handlePreviewImage = () => {
     if (!resourceUrl) return;
@@ -45,13 +46,25 @@ export default function ResourcePreviewPage() {
           <ScrollView scrollY className="resource-image-scroll">
             <View className="resource-title-bar">
               <Text className="resource-title">{title}</Text>
-              <View className="resource-action" onClick={handlePreviewImage}><Icon name="Eye" /> 查看原图</View>
+              {downloadable ? (
+                <View className="resource-action" onClick={handlePreviewImage}><Icon name="Eye" /> 查看原图</View>
+              ) : (
+                <View className="resource-action resource-action-muted"><Icon name="Lock" /> 禁止下载</View>
+              )}
             </View>
-            <Image className="resource-image" src={resourceUrl} mode="widthFix" onClick={handlePreviewImage} />
+            <View>
+              <Image
+                className={`resource-image${downloadable ? '' : ' resource-image-protected'}`}
+                src={resourceUrl}
+                mode="widthFix"
+                showMenuByLongpress={downloadable}
+                onClick={downloadable ? handlePreviewImage : undefined}
+              />
+            </View>
             <View className="safe-bottom" />
           </ScrollView>
         ) : (
-          <PdfPreview url={resourceUrl} title={title} />
+          <PdfPreview url={resourceUrl} title={title} downloadable={downloadable} />
         )}
       </View>
     </AuthGate>

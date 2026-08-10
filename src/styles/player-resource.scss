@@ -221,6 +221,18 @@
   font-weight: 800;
 }
 
+.resource-action-muted {
+  color: #667085;
+  cursor: default;
+}
+
+.resource-image-protected {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
+}
+
 .resource-image-scroll {
   flex: 1;
   min-height: 0;
@@ -369,4 +381,3 @@
   color: #667085;
   font-size: 26px;
 }
-

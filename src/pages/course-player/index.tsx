@@ -124,7 +124,7 @@ export default function CoursePlayerPage() {
     if (item.type === 'image' || item.type === 'pdf') {
       if (playingItemId !== null) reportPlayProgress(playingItemId, currentTimeRef.current);
       Taro.navigateTo({
-        url: `/pages/resource-preview/index?type=${item.type}&url=${encodeURIComponent(item.url || '')}&title=${encodeURIComponent(item.name)}`,
+        url: `/pages/resource-preview/index?type=${item.type}&url=${encodeURIComponent(item.url || '')}&title=${encodeURIComponent(item.name)}&downloadable=${item.downloadable === false ? '0' : '1'}`,
         success: () => {
           reportPlayProgress(item.id, 1);
         },

@@ -152,11 +152,11 @@ export const mockCourseDetailData: CourseDetailResponse = {
     desc: '本节重点：红外传感器的防死角部署与盲点规避。',
     currentChapterIndex: 0,
     chapters: [
-      { id: 1, index: '01', name: '基础：传感器工作原理', type: 'video', spendTime: 1520, status: 'playing', url: 'https://www.w3schools.com/html/mov_bbb.mp4', initialTime: 60 },
-      { id: 2, index: '02', name: '部署：2026款硬件安装图示', type: 'image', spendTime: 1, status: 'completed', url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200', initialTime: 0 },
-      { id: 3, index: '03', name: '调试：多机联动信号补偿', type: 'video', spendTime: 1800, status: 'playing', url: 'https://www.w3schools.com/html/movie.mp4', initialTime: 0 },
-      { id: 4, index: '04', name: '验收：场景联动检查清单 PDF', type: 'pdf', spendTime: 1, status: 'playing', url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', initialTime: 0 },
-      { id: 9, index: '05', name: '结业考试', type: 'test', spendTime: 0, status: 'unlocked', url: '', initialTime: 0 },
+      { id: 1, index: '01', name: '基础：传感器工作原理', type: 'video', spendTime: 1520, status: 'playing', url: 'https://www.w3schools.com/html/mov_bbb.mp4', downloadable: true, initialTime: 60 },
+      { id: 2, index: '02', name: '部署：2026款硬件安装图示', type: 'image', spendTime: 1, status: 'completed', url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200', downloadable: false, initialTime: 0 },
+      { id: 3, index: '03', name: '调试：多机联动信号补偿', type: 'video', spendTime: 1800, status: 'playing', url: 'https://www.w3schools.com/html/movie.mp4', downloadable: true, initialTime: 0 },
+      { id: 4, index: '04', name: '验收：场景联动检查清单 PDF', type: 'pdf', spendTime: 1, status: 'playing', url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', downloadable: false, initialTime: 0 },
+      { id: 9, index: '05', name: '结业考试', type: 'test', spendTime: 0, status: 'unlocked', url: '', downloadable: false, initialTime: 0 },
     ],
   },
 };

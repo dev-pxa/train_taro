@@ -6,11 +6,12 @@ import { getResourceAuthOptions } from '../../services/resourceRequest';
 type PdfPreviewProps = {
   url: string;
   title?: string;
+  downloadable?: boolean;
 };
 
 type PreviewStatus = 'loading' | 'ready' | 'error';
 
-export default function PdfPreview({ url, title }: PdfPreviewProps) {
+export default function PdfPreview({ url, title, downloadable = true }: PdfPreviewProps) {
   const [status, setStatus] = useState<PreviewStatus>('loading');
   const [message, setMessage] = useState('正在加载PDF');
   const [objectUrl, setObjectUrl] = useState('');
@@ -79,11 +80,20 @@ export default function PdfPreview({ url, title }: PdfPreviewProps) {
     <View className="pdf-preview">
       <View className="resource-title-bar">
         <Text className="resource-title">{previewTitle}</Text>
-        <View className="resource-action" onClick={openInNewTab}><Icon name="Share" /> 打开文件</View>
+        {downloadable ? (
+          <View className="resource-action" onClick={openInNewTab}><Icon name="Share" /> 打开文件</View>
+        ) : (
+          <View className="resource-action resource-action-muted"><Icon name="Lock" /> 禁止下载</View>
+        )}
       </View>
       {status === 'ready' && objectUrl ? (
         <View className="pdf-iframe-shell">
-          <iframe className="pdf-iframe" src={objectUrl} title={previewTitle} />
+          <iframe
+            className="pdf-iframe"
+            src={downloadable ? objectUrl : `${objectUrl}#toolbar=0&navpanes=0`}
+            title={previewTitle}
+            onContextMenu={downloadable ? undefined : (event) => event.preventDefault()}
+          />
         </View>
       ) : (
         <View className={`pdf-preview-status pdf-preview-status-${status}`}>

@@ -166,6 +166,7 @@ export interface Chapter {
   spendTime: number;
   status: ChapterStatus;
   url: string;
+  downloadable: boolean;
   initialTime: number;
   examRecordId?: number;
 }
