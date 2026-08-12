@@ -1,9 +1,9 @@
 import {
   CertificateDetailResponse,
+  CourseCategoriesResponse,
   CourseDetailResponse,
   CourseListFilter,
   CourseListResponse,
-  CourseTabsResponse,
   ExamListResponse,
   ExamResponse,
   ExamResultResponse,
@@ -351,22 +351,34 @@ export async function mockFetchCertificateDetail(certificateId: number): Promise
   };
 }
 
-export const mockCourseTabs: CourseTabsResponse = {
+export const mockCourseCategories: CourseCategoriesResponse = {
   code: 0,
   desc: '操作成功',
   data: [
-    { key: 'all', name: '全部', kind: 'ALL' },
-    { key: 'series', name: '系列课程', kind: 'TYPE', type: 1 },
-    { key: 'micro', name: '微课程', kind: 'TYPE', type: 0 },
-    { key: 'category:101', name: '安全专题', kind: 'CATEGORY', categoryId: 101 },
-    { key: 'category:102', name: '技能提升', kind: 'CATEGORY', categoryId: 102 },
+    {
+      id: 101,
+      name: '售前',
+      children: [
+        { id: 1001, name: '产品认知' },
+        { id: 1002, name: '方案设计' },
+      ],
+    },
+    {
+      id: 102,
+      name: '售后',
+      children: [
+        { id: 2001, name: '安装调试' },
+        { id: 2002, name: '运维排障' },
+      ],
+    },
   ],
 };
 
-const MOCK_COURSE_CATEGORY_IDS: Record<string, number[]> = {
-  course_001: [101],
-  course_003: [102],
-  course_005: [101, 102],
+const MOCK_COURSE_CATEGORY_IDS: Record<string, [number, number?]> = {
+  course_001: [101, 1001],
+  course_002: [101, 1002],
+  course_003: [102, 2001],
+  course_005: [102, 2002],
 };
 
 export function buildMockCourseList(filter: CourseListFilter = {}): CourseListResponse {
@@ -375,8 +387,9 @@ export function buildMockCourseList(filter: CourseListFilter = {}): CourseListRe
     return result;
   }, []);
   const filtered = list.filter(course => {
-    if (filter.type && course.type !== filter.type) return false;
-    if (filter.categoryId && !(MOCK_COURSE_CATEGORY_IDS[course.id] || []).includes(filter.categoryId)) return false;
+    const categoryIds = MOCK_COURSE_CATEGORY_IDS[course.id];
+    if (filter.primaryCategoryId && categoryIds?.[0] !== filter.primaryCategoryId) return false;
+    if (filter.secondaryCategoryId && categoryIds?.[1] !== filter.secondaryCategoryId) return false;
     return true;
   }).map(({ moduleType: _moduleType, ...course }) => course);
   return { code: 0, desc: '查询成功', data: { list: filtered, total: filtered.length } };

@@ -85,12 +85,6 @@
   font-size: 24px;
 }
 
-.category-tabs {
-  white-space: nowrap;
-  height: 88px;
-  padding: 0 28px;
-}
-
 .course-list-fixed-tools {
   position: fixed;
   left: 0;
@@ -101,23 +95,95 @@
   transform: translateZ(0);
 }
 
-.category-tab {
-  display: inline-flex;
+.course-taxonomy {
+  margin: 20px 24px 0;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.06);
+}
+
+.primary-tabs {
+  width: 100%;
+  margin-bottom: 16px;
+  border-radius: 20px;
+  background: #f8fafc;
+}
+
+.primary-tabs-track {
+  min-width: 100%;
+  padding: 6px;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.primary-tabs-track.compact .primary-tab {
+  flex: 1;
+  min-width: 0;
+}
+
+.primary-tab {
+  flex: 0 0 auto;
+  min-width: 180px;
+  height: 72px;
+  padding: 0 28px;
+  border-radius: 18px;
+  color: #344054;
+  font-size: 26px;
+  font-weight: 700;
+  display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  height: 56px;
-  padding: 0 24px;
-  margin: 14px 12px 14px 0;
-  border-radius: 28px;
+  box-sizing: border-box;
+}
+
+.primary-tab.active {
+  color: #4f8ef7;
   background: #ffffff;
-  color: #4b5563;
-  font-size: 25px;
+  box-shadow: 0 4px 16px rgba(31, 41, 55, 0.08);
+}
+
+.secondary-tabs {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.secondary-tabs-track {
+  min-width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.category-tab {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  padding: 0 24px;
+  border: 2px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #667085;
+  font-size: 26px;
+  font-weight: 650;
+  box-sizing: border-box;
 }
 
 .category-tab.active {
-  color: #ffffff;
-  background: linear-gradient(135deg, #4f8ef7 0%, #7c6efc 100%);
+  color: #4f8ef7;
+  background: rgba(79, 142, 247, 0.1);
+  border-color: rgba(79, 142, 247, 0.32);
+  font-weight: 750;
 }
 
 .filter-bar {
@@ -138,4 +204,3 @@
 .course-grid-page {
   padding: 20px 32px 0;
 }
-

@@ -1,62 +1,6 @@
-<!doctype html>
-<html lang="zh-CN"><head><script data-od-sandbox-shim="">(function(){
-  function makeStore(){
-    var data = {};
-    var api = {
-      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
-      setItem: function(k, v){ data[k] = String(v); },
-      removeItem: function(k){ delete data[k]; },
-      clear: function(){ data = {}; },
-      key: function(i){ return Object.keys(data)[i] || null; }
-    };
-    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
-    return api;
-  }
-  function tryShim(name){
-    var works = false;
-    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
-    catch (_) { works = false; }
-    if (works) return;
-    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
-    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
-  }
-  tryShim('localStorage');
-  tryShim('sessionStorage');
-  document.addEventListener('click', (e) => {
-    if (!e.target || !(e.target instanceof Element)) return;
-    var link = e.target.closest('a[href]');
-    if (!link) return;
-    var href = link.getAttribute('href');
-    if (href === null) return;
-    var isAnchor = href.startsWith('#') || href === '';
-    if (isAnchor) {
-      e.preventDefault();
-      if (href === '' || href === '#') {
-        window.scrollTo({ top: 0 });
-        history.replaceState(null, '', ' ');
-      } else {
-        var targetId = href.slice(1);
-        var target = targetId ? document.getElementById(targetId) : null;
-        if (target) {
-          target.scrollIntoView();
-          location.hash === href && history.replaceState(null, '', ' ');
-          location.hash = href;
-        }
-      }
-    } else if (link.getAttribute('target') === '_blank') {
-      e.preventDefault();
-      let safe = false;
-      try {
-        var url = new URL(href, location.href);
-        safe =
-          url.protocol === 'http:' ||
-          url.protocol === 'https:' ||
-          url.protocol === 'mailto:';
-      } catch (_) {}
-      safe && window.open(href, '_blank', 'noopener,noreferrer');
-    }
-  });
-})();</script>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>企训通 - 课程列表</title>
@@ -254,12 +198,68 @@
     }
 
     /* 分类筛选 */
+    .course-taxonomy {
+      margin-bottom: var(--space-5);
+      padding: var(--space-3);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--elev-soft);
+    }
+
+    .primary-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2);
+      padding: 3px;
+      margin-bottom: var(--space-3);
+      border-radius: 15px;
+      background: var(--bg);
+    }
+
+    .primary-tab,
+    .category-tab {
+      appearance: none;
+      border: 0;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: background var(--motion-base) var(--ease-standard),
+                  color var(--motion-base) var(--ease-standard),
+                  border-color var(--motion-base) var(--ease-standard),
+                  transform var(--motion-fast) var(--ease-standard);
+    }
+
+    .primary-tab {
+      min-height: 40px;
+      border-radius: 12px;
+      color: var(--fg-2);
+      background: transparent;
+      font-size: var(--text-sm);
+      font-weight: 700;
+    }
+
+    .primary-tab.active {
+      background: var(--surface);
+      color: var(--accent);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .primary-tab:active,
+    .category-tab:active {
+      transform: translateY(1px);
+    }
+
+    .primary-tab:focus-visible,
+    .category-tab:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+
     .category-tabs {
       display: flex;
       gap: var(--space-2);
-      margin-bottom: var(--space-5);
       overflow-x: auto;
-      padding-bottom: 4px;
+      padding: 1px 1px 2px;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
@@ -269,28 +269,27 @@
     }
 
     .category-tab {
-      flex-shrink: 0;
-      padding: 10px 18px;
-      border-radius: var(--radius-pill);
+      flex: 0 0 auto;
+      min-height: 36px;
+      padding: 0 13px;
+      border-radius: 12px;
       font-size: var(--text-sm);
-      font-weight: 500;
+      font-weight: 650;
       color: var(--muted);
       background: var(--surface);
       border: 1px solid var(--border);
-      cursor: pointer;
-      transition: all var(--motion-base) var(--ease-standard);
     }
 
     .category-tab:hover {
-      border-color: var(--accent);
+      border-color: rgba(79, 142, 247, 0.42);
       color: var(--accent);
     }
 
     .category-tab.active {
-      background: var(--gradient-primary);
-      color: white;
-      border-color: transparent;
-      box-shadow: 0 4px 12px rgba(79, 142, 247, 0.3);
+      color: var(--accent);
+      background: rgba(79, 142, 247, 0.1);
+      border-color: rgba(79, 142, 247, 0.32);
+      font-weight: 750;
     }
 
     /* 筛选排序栏 */
@@ -577,104 +576,9 @@
       }
     }
   </style>
-<style data-od-tweaks-bridge-style="">
-[data-od-tweaks-hidden] .tw-panel {
-  transform: translateX(calc(100% + 32px)) !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-.tw-restore { display: none !important; }
-</style><script data-od-tweaks-bridge="">(function(){
-  // Synchronously hide BEFORE the artifact body parses so the panel never
-  // flashes on initial paint. The host removes the attribute via postMessage
-  // once it knows the desired state.
-  document.documentElement.setAttribute('data-od-tweaks-hidden', '');
-
-  var suppressEcho = false;
-  var observer = null;
-
-  function panelEl(){ return document.querySelector('.tw-panel'); }
-
-  function applyClassesToPanel(visible){
-    var panel = panelEl();
-    if (panel) panel.classList.toggle('tw-hidden', !visible);
-  }
-
-  function setPanelVisible(visible){
-    suppressEcho = true;
-    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
-    applyClassesToPanel(visible);
-    // Clear flag after the MutationObserver has had a chance to fire for this
-    // change so we don't echo our own host-driven toggles back to the host.
-    Promise.resolve().then(function(){ suppressEcho = false; });
-  }
-
-  function postState(){
-    var panel = panelEl();
-    if (!panel) return;
-    try {
-      parent.postMessage({
-        type: 'od:tweaks-panel-state',
-        visible: !panel.classList.contains('tw-hidden'),
-      }, '*');
-    } catch (e) {}
-  }
-
-  function postAvailability(){
-    try {
-      parent.postMessage({
-        type: 'od:tweaks-available',
-        available: !!panelEl(),
-      }, '*');
-    } catch (e) {}
-  }
-
-  function attachObserver(){
-    var panel = panelEl();
-    if (!panel || observer) return;
-    observer = new MutationObserver(function(){
-      if (suppressEcho) return;
-      postState();
-    });
-    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
-  }
-
-  function onReady(){
-    // Capture the panel authored visibility BEFORE we apply the host hidden
-    // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
-    // (before the body parses), so on entry to onReady the attribute is
-    // always present even though the artifact may have authored the panel
-    // as default-visible. Reading the panel class first is the only place
-    // we can still observe the author intent. Then drive the attribute,
-    // classes, and posted state from that captured value so a default
-    // visible tw-panel reports visible:true and the toolbar toggle starts
-    // ON. Issue surfaced in PR #1643 review.
-    var panel = panelEl();
-    var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
-    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
-    applyClassesToPanel(initialVisible);
-    attachObserver();
-    postAvailability();
-    // Post the captured initial visibility so the toolbar toggle reflects
-    // the default state on mount. Without this the toggle reads OFF while
-    // a default-visible tw-panel artifact clearly shows its panel and the
-    // user would have to click toggle-on then toggle-off to actually hide.
-    postState();
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', onReady);
-  } else {
-    onReady();
-  }
-
-  window.addEventListener('message', function(ev){
-    if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
-    setPanelVisible(!!ev.data.visible);
-  });
-})();</script></head>
+</head>
 <body>
-  <div class="phone-container" data-od-id="path-0">
+  <div class="phone-container">
     <div class="phone-status-bar">
       <span>9:41</span>
       <div class="phone-notch"></div>
@@ -685,87 +589,89 @@
       <div class="scroll-content">
         <!-- 导航栏 -->
         <div class="nav-bar">
-          <a href="screen-home.html" class="nav-back" data-od-id="path-0-1-0-0-0">
+          <a href="screen-home.html" class="nav-back">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </a>
-          <h1 class="nav-title" id="pageTitle" data-od-id="path-0-1-0-0-1">岗位必修</h1>
-          <a href="#" class="nav-action" data-od-id="path-0-1-0-0-2">
+          <h1 class="nav-title" id="pageTitle">岗位必修</h1>
+          <a href="#" class="nav-action">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M18 8H6" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-              <path d="M21 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-              <path d="M15 16H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+              <path d="M18 8H6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M21 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M15 16H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
           </a>
         </div>
 
         <!-- 分类筛选 -->
-        <div class="category-tabs" id="categoryTabs" data-od-id="path-0-1-0-1">
-          <button class="category-tab active" data-category="all" data-od-id="path-0-1-0-1-0">全部</button>
-          <button class="category-tab" data-category="job" data-od-id="path-0-1-0-1-1">岗位必修</button>
-          <button class="category-tab" data-category="cert" data-od-id="path-0-1-0-1-2">专业证书</button>
-          <button class="category-tab" data-category="safety" data-od-id="path-0-1-0-1-3">安全专题</button>
-          <button class="category-tab" data-category="skill" data-od-id="path-0-1-0-1-4">技能提升</button>
+        <div class="course-taxonomy" data-od-id="course-taxonomy">
+          <div class="primary-tabs" role="group" aria-label="一级课程分类">
+            <button class="primary-tab active" type="button" data-stage="presales" aria-pressed="true">售前</button>
+            <button class="primary-tab" type="button" data-stage="aftersales" aria-pressed="false">售后</button>
+          </div>
+          <div class="category-tabs" id="categoryTabs" role="group" aria-label="二级课程分类">
+            <!-- 二级分类由JS生成 -->
+          </div>
         </div>
 
         <!-- 筛选排序栏 -->
         <div class="filter-bar">
-          <span class="filter-result" id="filterResult" data-od-id="path-0-1-0-2-0">共 6 门课程</span>
+          <span class="filter-result" id="filterResult">共 6 门课程</span>
           <div class="filter-sort">
             <span>最新</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
         </div>
 
         <!-- 课程列表 -->
-        <div class="course-grid" id="courseGrid" data-od-id="path-0-1-0-3">
+        <div class="course-grid" id="courseGrid">
           <!-- 课程卡片由JS生成 -->
         </div>
 
         <div class="page-nav">
-          <a href="screen-login.html" class="nav-btn" data-od-id="path-0-1-0-4-0">登录</a>
-          <a href="screen-home.html" class="nav-btn" data-od-id="path-0-1-0-4-1">首页</a>
-          <a href="screen-course-list.html" class="nav-btn active" data-od-id="path-0-1-0-4-2">课程</a>
-          <a href="screen-profile.html" class="nav-btn" data-od-id="path-0-1-0-4-3">我的</a>
+          <a href="screen-login.html" class="nav-btn">登录</a>
+          <a href="screen-home.html" class="nav-btn">首页</a>
+          <a href="screen-course-list.html" class="nav-btn active">课程</a>
+          <a href="screen-profile.html" class="nav-btn">我的</a>
         </div>
       </div>
     </div>
 
     <div class="tab-bar">
-      <a href="screen-home.html" class="tab-item" data-od-id="path-0-2-0">
+      <a href="screen-home.html" class="tab-item">
         <div class="tab-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <span>首页</span>
       </a>
-      <a href="#" class="tab-item active" data-od-id="path-0-2-1">
+      <a href="#" class="tab-item active">
         <div class="tab-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M12 6.25278C9.82457 4.91889 7.20727 4.19971 4.5 4.33334V20C7.17519 20.2843 9.79729 21.1078 12 22.5C14.2027 21.1078 16.8248 20.2843 19.5 20V4.33334C16.7927 4.19971 14.1754 4.91889 12 6.25278Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M12 6.25278C9.82457 4.91889 7.20727 4.19971 4.5 4.33334V20C7.17519 20.2843 9.79729 21.1078 12 22.5C14.2027 21.1078 16.8248 20.2843 19.5 20V4.33334C16.7927 4.19971 14.1754 4.91889 12 6.25278Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <span>学习</span>
       </a>
-      <a href="#" class="tab-item" data-od-id="path-0-2-2">
+      <a href="screen-exam-list.html" class="tab-item">
         <div class="tab-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <span>考试</span>
       </a>
-      <a href="screen-profile.html" class="tab-item" data-od-id="path-0-2-3">
+      <a href="screen-profile.html" class="tab-item">
         <div class="tab-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <span>我的</span>
@@ -778,6 +684,31 @@
   </div>
 
   <script>
+    const categoryGroups = {
+      presales: {
+        label: '售前',
+        title: '售前课程',
+        categories: [
+          { id: 'all', label: '全部' },
+          { id: 'product', label: '产品认知' },
+          { id: 'solution', label: '方案设计' },
+          { id: 'sales', label: '销售话术' },
+          { id: 'demo', label: '演示资料' }
+        ]
+      },
+      aftersales: {
+        label: '售后',
+        title: '售后课程',
+        categories: [
+          { id: 'all', label: '全部' },
+          { id: 'install', label: '安装调试' },
+          { id: 'maintenance', label: '运维排障' },
+          { id: 'safety', label: '安全规范' },
+          { id: 'service', label: '客户服务' }
+        ]
+      }
+    };
+
     // 课程数据
     const courses = [
       {
@@ -787,7 +718,8 @@
         type: "series",
         duration: "12课时",
         label: "热门精选",
-        category: "cert"
+        stage: "presales",
+        category: "product"
       },
       {
         id: "course_002",
@@ -796,7 +728,8 @@
         type: "series",
         duration: "8课时",
         label: "新课上架",
-        category: "job"
+        stage: "aftersales",
+        category: "install"
       },
       {
         id: "course_003",
@@ -805,7 +738,8 @@
         type: "micro",
         duration: "15分钟",
         label: "热门精选",
-        category: "skill"
+        stage: "presales",
+        category: "sales"
       },
       {
         id: "course_004",
@@ -814,7 +748,8 @@
         type: "series",
         duration: "6课时",
         label: "认证课程",
-        category: "cert"
+        stage: "presales",
+        category: "solution"
       },
       {
         id: "course_005",
@@ -823,6 +758,7 @@
         type: "micro",
         duration: "20分钟",
         label: "新课上架",
+        stage: "aftersales",
         category: "safety"
       },
       {
@@ -832,7 +768,8 @@
         type: "series",
         duration: "10课时",
         label: "认证课程",
-        category: "cert"
+        stage: "presales",
+        category: "demo"
       },
       {
         id: "course_007",
@@ -841,7 +778,8 @@
         type: "series",
         duration: "5课时",
         label: "岗位必修",
-        category: "job"
+        stage: "aftersales",
+        category: "maintenance"
       },
       {
         id: "course_008",
@@ -850,9 +788,13 @@
         type: "micro",
         duration: "18分钟",
         label: "安全专题",
-        category: "safety"
+        stage: "aftersales",
+        category: "service"
       }
     ];
+
+    let activeStage = 'presales';
+    let activeCategory = 'all';
 
     // 生成课程卡片HTML
     function createCourseCard(course) {
@@ -885,13 +827,37 @@
     }
 
     // 渲染课程列表
-    function renderCourses(category = 'all') {
+    function renderCategoryTabs(stage, selectedCategory = 'all') {
+      const categoryTabs = document.getElementById('categoryTabs');
+      const categories = categoryGroups[stage].categories;
+
+      categoryTabs.innerHTML = categories.map(item => `
+        <button class="category-tab${item.id === selectedCategory ? ' active' : ''}" type="button" data-category="${item.id}" aria-pressed="${item.id === selectedCategory}">
+          ${item.label}
+        </button>
+      `).join('');
+
+      categoryTabs.querySelectorAll('.category-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          categoryTabs.querySelectorAll('.category-tab').forEach(item => {
+            item.classList.remove('active');
+            item.setAttribute('aria-pressed', 'false');
+          });
+          tab.classList.add('active');
+          tab.setAttribute('aria-pressed', 'true');
+          activeCategory = tab.dataset.category;
+          renderCourses();
+        });
+      });
+    }
+
+    function renderCourses() {
       const courseGrid = document.getElementById('courseGrid');
       const filterResult = document.getElementById('filterResult');
 
-      let filteredCourses = courses;
-      if (category !== 'all') {
-        filteredCourses = courses.filter(c => c.category === category);
+      let filteredCourses = courses.filter(c => c.stage === activeStage);
+      if (activeCategory !== 'all') {
+        filteredCourses = filteredCourses.filter(c => c.category === activeCategory);
       }
 
       if (filteredCourses.length === 0) {
@@ -899,25 +865,34 @@
           <div class="empty-state" style="grid-column: 1 / -1;">
             <div class="empty-icon">📚</div>
             <h3 class="empty-title">暂无课程</h3>
-            <p class="empty-text">该分类下暂时没有课程，去其他分类看看吧</p>
+            <p class="empty-text">该分类下暂时没有课程，换一个二级分类看看吧</p>
           </div>
         `;
       } else {
         courseGrid.innerHTML = filteredCourses.map(createCourseCard).join('');
       }
 
-      filterResult.textContent = `共 ${filteredCourses.length} 门课程`;
+      const stageName = categoryGroups[activeStage].label;
+      const categoryName = categoryGroups[activeStage].categories.find(item => item.id === activeCategory)?.label || '全部';
+      filterResult.textContent = `${stageName} · ${categoryName} · 共 ${filteredCourses.length} 门课程`;
     }
 
     // 分类切换
     function initCategoryTabs() {
-      const tabs = document.querySelectorAll('.category-tab');
+      const tabs = document.querySelectorAll('.primary-tab');
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-          tabs.forEach(t => t.classList.remove('active'));
+          tabs.forEach(t => {
+            t.classList.remove('active');
+            t.setAttribute('aria-pressed', 'false');
+          });
           tab.classList.add('active');
-          const category = tab.dataset.category;
-          renderCourses(category);
+          tab.setAttribute('aria-pressed', 'true');
+          activeStage = tab.dataset.stage;
+          activeCategory = 'all';
+          document.getElementById('pageTitle').textContent = categoryGroups[activeStage].title;
+          renderCategoryTabs(activeStage, activeCategory);
+          renderCourses();
         });
       });
     }
@@ -934,123 +909,34 @@
       const pageTitle = document.getElementById('pageTitle');
 
       // 根据参数设置页面标题和默认分类
-      let defaultCategory = 'all';
+      activeStage = 'presales';
+      activeCategory = 'all';
       if (typeParam === 'job') {
-        pageTitle.textContent = '岗位必修';
-        defaultCategory = 'job';
+        activeStage = 'aftersales';
+        activeCategory = 'install';
       } else if (typeParam === 'cert') {
-        pageTitle.textContent = '专业证书';
-        defaultCategory = 'cert';
+        activeStage = 'presales';
+        activeCategory = 'product';
       }
+      pageTitle.textContent = categoryGroups[activeStage].title;
 
-      // 设置默认分类
-      const tabs = document.querySelectorAll('.category-tab');
+      // 设置默认一级分类
+      const tabs = document.querySelectorAll('.primary-tab');
       tabs.forEach(tab => {
-        if (tab.dataset.category === defaultCategory) {
-          tabs.forEach(t => t.classList.remove('active'));
+        if (tab.dataset.stage === activeStage) {
+          tabs.forEach(t => {
+            t.classList.remove('active');
+            t.setAttribute('aria-pressed', 'false');
+          });
           tab.classList.add('active');
+          tab.setAttribute('aria-pressed', 'true');
         }
       });
 
       initCategoryTabs();
-      renderCourses(defaultCategory);
+      renderCategoryTabs(activeStage, activeCategory);
+      renderCourses();
     });
   </script>
-
-
-<script data-od-snapshot-bridge="">(function(){
-  function copyComputedStyle(source, target){
-    if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
-    var computed = window.getComputedStyle(source);
-    var style = target.getAttribute('style') || '';
-    for (var i = 0; i < computed.length; i++){
-      var prop = computed[i];
-      style += prop + ':' + computed.getPropertyValue(prop) + ';';
-    }
-    target.setAttribute('style', style);
-  }
-  function syncElementState(source, target){
-    var tag = source.tagName ? source.tagName.toLowerCase() : '';
-    if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
-    if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
-    if (tag === 'canvas') {
-      try {
-        var img = document.createElement('img');
-        img.setAttribute('src', source.toDataURL('image/png'));
-        img.setAttribute('style', target.getAttribute('style') || '');
-        target.parentNode && target.parentNode.replaceChild(img, target);
-      } catch (_) {}
-    }
-  }
-  function inlineSnapshotStyles(originalRoot, cloneRoot){
-    copyComputedStyle(originalRoot, cloneRoot);
-    syncElementState(originalRoot, cloneRoot);
-    var originals = originalRoot.querySelectorAll('*');
-    var clones = cloneRoot.querySelectorAll('*');
-    var count = Math.min(originals.length, clones.length);
-    for (var i = 0; i < count; i++){
-      copyComputedStyle(originals[i], clones[i]);
-      syncElementState(originals[i], clones[i]);
-    }
-    var scripts = cloneRoot.querySelectorAll('script');
-    for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
-  }
-  function waitForImages(){
-    var imgs = Array.prototype.slice.call(document.images || []);
-    return Promise.all(imgs.map(function(img){
-      if (img.complete) return Promise.resolve();
-      return new Promise(function(resolve){
-        img.addEventListener('load', resolve, { once: true });
-        img.addEventListener('error', resolve, { once: true });
-      });
-    }));
-  }
-  function renderSnapshot(id){
-    var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
-    var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
-    var dpr = window.devicePixelRatio || 1;
-    var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
-    var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
-    var clone = document.documentElement.cloneNode(true);
-    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
-    inlineSnapshotStyles(document.documentElement, clone);
-    var serializer = new XMLSerializer();
-    var html = serializer.serializeToString(clone);
-    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
-      '<foreignObject x="' + (-window.scrollX || 0) + '" y="' + (-window.scrollY || 0) + '" width="' + docW + '" height="' + docH + '">' +
-      html +
-      '</foreignObject></svg>';
-    var img = new Image();
-    img.onload = function(){
-      try {
-        var canvas = document.createElement('canvas');
-        canvas.width = Math.max(1, Math.floor(w * dpr));
-        canvas.height = Math.max(1, Math.floor(h * dpr));
-        var ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error('no 2d context');
-        ctx.scale(dpr, dpr);
-        ctx.drawImage(img, 0, 0, w, h);
-        window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
-      } catch (err) {
-        window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
-      }
-    };
-    img.onerror = function(){
-      window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
-    };
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-  }
-  window.addEventListener('message', function(ev){
-    var data = ev && ev.data;
-    if (!data || data.type !== 'od:snapshot' || !data.id) return;
-    waitForImages().then(function(){ renderSnapshot(String(data.id)); });
-  });
-})();</script><script data-od-srcdoc-transport-activation="">(function(){
-  window.addEventListener('message', function(ev){
-    var data = ev && ev.data;
-    if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
-    document.open();
-    document.write(data.html);
-    document.close();
-  });
-})();</script></body></html>
+</body>
+</html>

@@ -21,8 +21,7 @@ export default function HomePage() {
     Taro.navigateTo({ url: `/pages/course-player/index?courseId=${course.id}` });
   };
 
-  const openCourseModule = (moduleType: string) => {
-    Taro.setStorageSync('course_list_pending_tab', moduleType);
+  const openCourseModule = () => {
     Taro.switchTab({ url: '/pages/course-list/index' });
   };
 
@@ -43,7 +42,7 @@ export default function HomePage() {
               <View className="section" key={module.moduleType}>
                 <View className="section-head">
                   <Text className="section-title">{module.sectionTitle}</Text>
-                  <Text className="section-link" onClick={() => openCourseModule(module.moduleType)}>查看全部</Text>
+                  <Text className="section-link" onClick={openCourseModule}>查看全部</Text>
                 </View>
                 <View className="course-grid">
                   {module.courses.map(course => <CourseCard key={course.id} course={course} onPress={openCourse} />)}

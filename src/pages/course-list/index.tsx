@@ -6,69 +6,77 @@ import CourseCard from '../../components/CourseCard';
 import CustomNavBar, { getCustomNavMetrics } from '../../components/CustomNavBar';
 import ErrorState from '../../components/ErrorState';
 import { useFetchData } from '../../hooks/useFetchData';
-import { fetchCourseList, fetchCourseTabs } from '../../services/api';
-import { Course, CourseListFilter, CourseListResponse, CourseTab } from '../../types';
+import { fetchCourseCategories, fetchCourseList } from '../../services/api';
+import { Course, CourseCategory, CourseListFilter, CourseListResponse } from '../../types';
 
-const COURSE_LIST_FILTER_HEIGHT = 162;
+const COURSE_LIST_FILTER_HEIGHT = 294;
 
 export default function CourseListPage() {
-  const [tabs, setTabs] = useState<CourseTab[]>([]);
-  const [tabsLoading, setTabsLoading] = useState(true);
-  const [tabsError, setTabsError] = useState('');
-  const [activeTabKey, setActiveTabKey] = useState('all');
+  const [categories, setCategories] = useState<CourseCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState('');
+  const [primaryCategoryId, setPrimaryCategoryId] = useState<number>();
+  const [secondaryCategoryId, setSecondaryCategoryId] = useState<number>();
   const { data, loading, error, fetchData } = useFetchData<CourseListResponse['data']>();
   const navMetrics = useMemo(getCustomNavMetrics, []);
   const navHeight = navMetrics.statusBarHeight + navMetrics.navBarHeight;
   const filterHeight = Taro.pxTransform(COURSE_LIST_FILTER_HEIGHT);
 
-  const loadTabs = useCallback(async () => {
-    setTabsLoading(true);
-    setTabsError('');
+  const loadCategories = useCallback(async () => {
+    setCategoriesLoading(true);
+    setCategoriesError('');
     try {
-      const response = await fetchCourseTabs();
+      const response = await fetchCourseCategories();
       if (response.code !== 0 || !Array.isArray(response.data)) {
         throw new Error(response.desc || response.des || '获取课程分类失败');
       }
-      setTabs(response.data);
-      setActiveTabKey(current => response.data.some(tab => tab.key === current) ? current : 'all');
+      setCategories(response.data);
+      setPrimaryCategoryId(current => {
+        if (current && response.data.some(item => item.id === current)) return current;
+        return response.data[0]?.id;
+      });
     } catch (loadError) {
-      setTabsError(loadError instanceof Error ? loadError.message : '获取课程分类失败');
+      setCategoriesError(loadError instanceof Error ? loadError.message : '获取课程分类失败');
     } finally {
-      setTabsLoading(false);
+      setCategoriesLoading(false);
     }
   }, []);
 
-  const activeTab = tabs.find(tab => tab.key === activeTabKey);
-  const activeFilter = useMemo<CourseListFilter>(() => {
-    if (activeTab?.kind === 'TYPE') {
-      return { type: activeTab.type === 1 ? 'series' : 'micro' };
-    }
-    if (activeTab?.kind === 'CATEGORY' && activeTab.categoryId != null) {
-      return { categoryId: activeTab.categoryId };
-    }
-    return {};
-  }, [activeTab]);
+  const activePrimary = useMemo(
+    () => categories.find(item => item.id === primaryCategoryId),
+    [categories, primaryCategoryId],
+  );
+
+  const activeFilter = useMemo<CourseListFilter | undefined>(() => {
+    if (!primaryCategoryId) return undefined;
+    return {
+      primaryCategoryId,
+      secondaryCategoryId,
+    };
+  }, [primaryCategoryId, secondaryCategoryId]);
 
   useEffect(() => {
-    if (activeTab) {
+    if (activeFilter) {
       fetchData(() => fetchCourseList(activeFilter));
     }
-  }, [activeFilter, activeTab, fetchData]);
+  }, [activeFilter, fetchData]);
 
   useDidShow(() => {
-    const pendingTab = Taro.getStorageSync<string>('course_list_pending_tab');
-    if (pendingTab) {
-      Taro.removeStorageSync('course_list_pending_tab');
-      setActiveTabKey(pendingTab);
-    }
-    loadTabs();
+    void loadCategories();
   });
+
+  const selectPrimary = (id: number) => {
+    if (id === primaryCategoryId) return;
+    setPrimaryCategoryId(id);
+    setSecondaryCategoryId(undefined);
+  };
 
   const openCourse = (course: Course) => {
     Taro.navigateTo({ url: `/pages/course-player/index?courseId=${course.id}` });
   };
 
   const courses = data?.list || [];
+  const compactPrimaryTabs = categories.length <= 3;
 
   return (
     <AuthGate>
@@ -76,13 +84,41 @@ export default function CourseListPage() {
         <CustomNavBar title="课程列表" variant="default" fixed />
 
         <View className="course-list-fixed-tools" style={{ top: `${navHeight}px` }}>
-          <ScrollView scrollX className="category-tabs" showScrollbar={false}>
-            {tabs.map(tab => (
-              <Text key={tab.key} className={`category-tab ${tab.key === activeTabKey ? 'active' : ''}`} onClick={() => setActiveTabKey(tab.key)}>
-                {tab.name}
-              </Text>
-            ))}
-          </ScrollView>
+          <View className="course-taxonomy">
+            <ScrollView scrollX className="primary-tabs" showScrollbar={false}>
+              <View className={`primary-tabs-track ${compactPrimaryTabs ? 'compact' : ''}`}>
+                {categories.map(category => (
+                  <Text
+                    key={category.id}
+                    className={`primary-tab ${category.id === primaryCategoryId ? 'active' : ''}`}
+                    onClick={() => selectPrimary(category.id)}
+                  >
+                    {category.name}
+                  </Text>
+                ))}
+              </View>
+            </ScrollView>
+
+            <ScrollView scrollX className="secondary-tabs" showScrollbar={false}>
+              <View className="secondary-tabs-track">
+                <Text
+                  className={`category-tab ${secondaryCategoryId == null ? 'active' : ''}`}
+                  onClick={() => setSecondaryCategoryId(undefined)}
+                >
+                  全部
+                </Text>
+                {(activePrimary?.children || []).map(category => (
+                  <Text
+                    key={category.id}
+                    className={`category-tab ${category.id === secondaryCategoryId ? 'active' : ''}`}
+                    onClick={() => setSecondaryCategoryId(category.id)}
+                  >
+                    {category.name}
+                  </Text>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
 
           <View className="filter-bar">
             <Text className="filter-result">共 {data?.total ?? courses.length} 门课程</Text>
@@ -91,11 +127,13 @@ export default function CourseListPage() {
         </View>
         <View style={{ height: filterHeight }} />
 
-        {loading || tabsLoading ? <View className="loading-state"><Text className="loading-text">加载中...</Text></View> : null}
-        {tabsError ? (
-          !tabsLoading ? <ErrorState message={tabsError} onRetry={loadTabs} /> : null
+        {loading || categoriesLoading ? <View className="loading-state"><Text className="loading-text">加载中...</Text></View> : null}
+        {categoriesError ? (
+          !categoriesLoading ? <ErrorState message={categoriesError} onRetry={loadCategories} /> : null
+        ) : !categories.length ? (
+          !categoriesLoading ? <View className="empty-state"><Text className="empty-text">暂无课程分类</Text></View> : null
         ) : error || !data ? (
-          !loading ? <ErrorState message={error || '数据加载失败'} onRetry={() => fetchData(() => fetchCourseList(activeFilter))} /> : null
+          !loading ? <ErrorState message={error || '数据加载失败'} onRetry={() => activeFilter && fetchData(() => fetchCourseList(activeFilter))} /> : null
         ) : (
           <ScrollView scrollY className="course-list-scroll" style={{ height: `calc(100vh - ${navHeight}px - ${filterHeight})` }}>
             {courses.length ? (

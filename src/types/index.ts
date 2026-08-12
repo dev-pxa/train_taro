@@ -50,21 +50,22 @@ export type LoginApiResponse = ApiResponse<LoginResponse>;
 
 export type CourseType = 'micro' | 'series';
 
-export type CourseTabKind = 'ALL' | 'TYPE' | 'CATEGORY';
-
-export interface CourseTab {
-  key: string;
+export interface CourseCategoryChild {
+  id: number;
   name: string;
-  kind: CourseTabKind;
-  type?: 0 | 1;
-  categoryId?: number;
 }
 
-export type CourseTabsResponse = ApiResponse<CourseTab[]>;
+export interface CourseCategory {
+  id: number;
+  name: string;
+  children: CourseCategoryChild[];
+}
+
+export type CourseCategoriesResponse = ApiResponse<CourseCategory[]>;
 
 export interface CourseListFilter {
-  type?: CourseType;
-  categoryId?: number;
+  primaryCategoryId?: number;
+  secondaryCategoryId?: number;
 }
 
 export interface CarouselItem {

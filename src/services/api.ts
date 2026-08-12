@@ -1,10 +1,10 @@
 import Taro from '@tarojs/taro';
 import {
   CertificateDetailResponse,
+  CourseCategoriesResponse,
   CourseListFilter,
   CourseDetailResponse,
   CourseListResponse,
-  CourseTabsResponse,
   ExamListResponse,
   ExamResponse,
   ExamResultResponse,
@@ -29,7 +29,7 @@ import { getToken } from './storage';
 import {
   USE_MOCK,
   buildMockCourseList,
-  mockCourseTabs,
+  mockCourseCategories,
   logMockProgress,
   mockCourseDetailData,
   mockDelay,
@@ -106,14 +106,22 @@ export async function login(loginRequest: LoginRequest): Promise<LoginResponse> 
   return response.data;
 }
 
-export async function fetchCourseTabs(): Promise<CourseTabsResponse> {
-  return USE_MOCK ? mockDelay(mockCourseTabs) : request<CourseTabsResponse>('/course-tabs');
+export async function fetchCourseCategories(): Promise<CourseCategoriesResponse> {
+  return USE_MOCK ? mockDelay(mockCourseCategories) : request<CourseCategoriesResponse>('/course-categories');
 }
 
 export async function fetchCourseList(filter: CourseListFilter = {}): Promise<CourseListResponse> {
-  return USE_MOCK
-    ? mockDelay(buildMockCourseList(filter))
-    : request<CourseListResponse>('/courses', { method: 'GET', data: filter });
+  if (USE_MOCK) return mockDelay(buildMockCourseList(filter));
+
+  const data = {
+    ...(filter.primaryCategoryId !== undefined
+      ? { primaryCategoryId: filter.primaryCategoryId }
+      : {}),
+    ...(filter.secondaryCategoryId !== undefined
+      ? { secondaryCategoryId: filter.secondaryCategoryId }
+      : {}),
+  };
+  return request<CourseListResponse>('/courses', { method: 'GET', data });
 }
 
 export async function fetchProfile(): Promise<ProfileResponse> {
