@@ -199,9 +199,9 @@ export default function ExamPage() {
   const renderQuestion = (question: ExamQuestion) => {
     if (question.type === 0) {
       return (
-        <View className="option-list">
+        <View key={question.id} className="option-list">
           {question.options.map((option, index) => (
-            <View key={option} className={`option-item ${choiceAnswers[question.id] === index ? 'selected' : ''}`} onClick={() => setChoiceAnswers(prev => ({ ...prev, [question.id]: index }))}>
+            <View key={`${question.id}-${index}`} className={`option-item ${choiceAnswers[question.id] === index ? 'selected' : ''}`} onClick={() => setChoiceAnswers(prev => ({ ...prev, [question.id]: index }))}>
               <Text className="option-letter">{String.fromCharCode(65 + index)}</Text>
               <Text className="option-text">{option}</Text>
               <Text className="option-check">✓</Text>
