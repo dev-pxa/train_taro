@@ -57,7 +57,7 @@ export default function ExamCenterPage() {
   return (
     <AuthGate>
       <View className="page exam-list-page">
-        <CustomNavBar title="考试" variant="white" showBack backFallbackUrl="/pages/home/index" />
+        <CustomNavBar title="考试" variant="white" showBack backFallbackUrl="/pages/course-list/index" />
 
         {loading ? <View className="loading-state"><Text className="loading-text">加载中...</Text></View> : null}
         {error ? (

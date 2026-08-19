@@ -9,7 +9,7 @@ export default function ErrorState({ message, onRetry, onGoHome }: { message?: s
       <Text className="error-message">{message || '网络连接出现问题，请检查后重试'}</Text>
       {onRetry ? <View className="primary-btn" onClick={onRetry}>重试</View> : null}
       <View className="secondary-btn" style={{ marginTop: '20px' }} onClick={onGoHome || (() => Taro.navigateTo({ url: '/pages/developer-debug/index' }))}>
-        {onGoHome ? '返回首页' : '开发者调试'}
+        {onGoHome ? '返回课程' : '开发者调试'}
       </View>
     </View>
   );

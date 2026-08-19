@@ -29,12 +29,6 @@ export default {
     borderStyle: "white",
     list: [
       {
-        pagePath: "pages/home/index",
-        text: "首页",
-        iconPath: "assets/tabbar/home.png",
-        selectedIconPath: "assets/tabbar/home-active.png"
-      },
-      {
         pagePath: "pages/course-list/index",
         text: "学习",
         iconPath: "assets/tabbar/learn.png",

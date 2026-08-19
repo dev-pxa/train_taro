@@ -86,13 +86,13 @@ export default function ExamResultPage() {
                 className="secondary-btn"
                 onClick={() => {
                   if (data.passed) {
-                    Taro.switchTab({ url: '/pages/home/index' });
+                    Taro.switchTab({ url: '/pages/course-list/index' });
                     return;
                   }
                   Taro.switchTab({ url: '/pages/course-list/index' });
                 }}
               >
-                {data.passed ? '返回首页' : '去学习'}
+                {data.passed ? '返回课程' : '去学习'}
               </View>
               <View className="primary-btn" onClick={() => Taro.redirectTo({ url: retryUrl })}><Icon name="Refresh" /> {data.passed ? '再练一次' : '重新考试'}</View>
             </View>

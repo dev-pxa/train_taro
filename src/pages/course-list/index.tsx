@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Taro, { useDidShow } from '@tarojs/taro';
-import { ScrollView, Text, View } from '@tarojs/components';
+import { Image, ScrollView, Text, View } from '@tarojs/components';
 import AuthGate from '../../components/AuthGate';
-import CourseCard from '../../components/CourseCard';
 import CustomNavBar, { getCustomNavMetrics } from '../../components/CustomNavBar';
 import ErrorState from '../../components/ErrorState';
+import Icon from '../../components/Icon';
 import { useFetchData } from '../../hooks/useFetchData';
 import { fetchCourseCategories, fetchCourseList } from '../../services/api';
 import { Course, CourseCategory, CourseListFilter, CourseListResponse } from '../../types';
 
-const COURSE_LIST_FILTER_HEIGHT = 294;
+const COURSE_LIST_FILTER_HEIGHT = 326;
 
 export default function CourseListPage() {
   const [categories, setCategories] = useState<CourseCategory[]>([]);
@@ -81,7 +81,11 @@ export default function CourseListPage() {
   return (
     <AuthGate>
       <View className="page course-list-page">
-        <CustomNavBar title="课程列表" variant="default" fixed />
+        <CustomNavBar
+          title="课程中心"
+          variant="white"
+          fixed
+        />
 
         <View className="course-list-fixed-tools" style={{ top: `${navHeight}px` }}>
           <View className="course-taxonomy">
@@ -121,8 +125,8 @@ export default function CourseListPage() {
           </View>
 
           <View className="filter-bar">
-            <Text className="filter-result">共 {data?.total ?? courses.length} 门课程</Text>
-            <Text className="filter-sort">最新 ⌄</Text>
+            <Text className="filter-sort">最新 <Icon name="ChevronDown" /></Text>
+            <Text className="filter-result">共{data?.total ?? courses.length}门课程</Text>
           </View>
         </View>
         <View style={{ height: filterHeight }} />
@@ -137,8 +141,17 @@ export default function CourseListPage() {
         ) : (
           <ScrollView scrollY className="course-list-scroll" style={{ height: `calc(100vh - ${navHeight}px - ${filterHeight})` }}>
             {courses.length ? (
-              <View className="course-grid course-grid-page">
-                {courses.map(course => <CourseCard key={course.id} course={course} onPress={openCourse} />)}
+              <View className="course-list-content">
+                {courses.map(course => (
+                  <View key={course.id} className="course-list-item" onClick={() => openCourse(course)}>
+                    <Image className="course-list-cover" src={course.coverImage} mode="aspectFill" />
+                    <View className="course-list-copy">
+                      <Text className="course-list-title">{course.title}</Text>
+                      <Text className="course-list-meta">{course.duration}</Text>
+                    </View>
+                    <Icon name="ArrowRight" className="course-list-arrow" />
+                  </View>
+                ))}
               </View>
             ) : (
               <View className="empty-state"><Text className="empty-text">该分类下暂时没有课程</Text></View>

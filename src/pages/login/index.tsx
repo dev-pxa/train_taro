@@ -45,7 +45,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!initializing && isAuthenticated) {
-      Taro.switchTab({ url: '/pages/home/index' });
+      Taro.switchTab({ url: '/pages/course-list/index' });
     }
   }, [initializing, isAuthenticated]);
 
@@ -72,7 +72,7 @@ export default function LoginPage() {
     try {
       const response = await login({ companyCode: selectedCompany.code, username: username.trim(), password: password.trim() });
       await signIn(response);
-      Taro.switchTab({ url: '/pages/home/index' });
+      Taro.switchTab({ url: '/pages/course-list/index' });
     } catch (err) {
       Taro.showToast({ title: err instanceof Error ? err.message : '登录失败', icon: 'none' });
     } finally {

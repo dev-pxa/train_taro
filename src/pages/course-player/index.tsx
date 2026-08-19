@@ -142,7 +142,7 @@ export default function CoursePlayerPage() {
         <CustomNavBar title="课程播放" variant="white" showBack />
         {loading ? <View className="loading-state"><Text className="loading-text">加载中...</Text></View> : null}
         {error || !data ? (
-          !loading ? <ErrorState message={error || '数据加载失败'} onRetry={() => fetchData(() => fetchCourseDetail(courseId))} onGoHome={() => Taro.switchTab({ url: '/pages/home/index' })} /> : null
+          !loading ? <ErrorState message={error || '数据加载失败'} onRetry={() => fetchData(() => fetchCourseDetail(courseId))} onGoHome={() => Taro.switchTab({ url: '/pages/course-list/index' })} /> : null
         ) : (
           <>
             <View className="video-shell">

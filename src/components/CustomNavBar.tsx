@@ -77,7 +77,7 @@ export default function CustomNavBar({
   showBack = false,
   leftIcon = 'Back',
   rightSlot,
-  backFallbackUrl = '/pages/home/index',
+  backFallbackUrl = '/pages/course-list/index',
   onBack,
   fixed = false,
   placeholder,
