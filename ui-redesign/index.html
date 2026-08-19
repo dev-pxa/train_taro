@@ -1,0 +1,1227 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>企训通 UI Redesign</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --surface: #ffffff;
+      --surface-2: #eef4ff;
+      --ink: #111827;
+      --muted: #667085;
+      --soft: #9aa6b8;
+      --line: #e4e9f2;
+      --brand: #2f6eea;
+      --brand-2: #7c3aed;
+      --brand-3: #ffb454;
+      --brand-soft: #eaf2ff;
+      --brand-glow: linear-gradient(135deg, #2f6eea 0%, #7c3aed 55%, #ff7ab6 82%, #ffb454 118%);
+      --warn: #b76a27;
+      --warn-soft: #fff3e4;
+      --danger: #b8313b;
+      --danger-soft: #ffecee;
+      --ok: #4169e1;
+      --ok-soft: #edf3ff;
+      --shadow: 0 20px 56px rgba(49, 70, 104, .14);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      color: var(--ink);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #e7ebf3;
+    }
+
+    .gallery {
+      min-height: 100vh;
+      padding: 32px;
+    }
+
+    .gallery h1 {
+      margin: 0 0 18px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(375px, 1fr));
+      gap: 28px;
+      align-items: start;
+    }
+
+    .shot {
+      width: 375px;
+      height: 812px;
+      margin: 0 auto;
+      overflow: hidden;
+      background: var(--bg);
+      position: relative;
+      box-shadow: var(--shadow);
+    }
+
+    .screen {
+      width: 375px;
+      height: 812px;
+      overflow: hidden;
+      background:
+        linear-gradient(145deg, rgba(47, 110, 234, .13) 0%, rgba(124, 58, 237, .08) 34%, rgba(255, 122, 182, .08) 58%, rgba(255, 180, 84, .08) 82%, rgba(246, 248, 252, 0) 100%),
+        linear-gradient(180deg, #fbfdff 0%, var(--bg) 46%);
+      position: relative;
+    }
+
+    .screen.dark {
+      color: #f7fbfa;
+      background: #101828;
+    }
+
+    .status {
+      height: 38px;
+      padding: 13px 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+      color: currentColor;
+    }
+
+    .status .sys { display: flex; gap: 5px; align-items: center; color: currentColor; opacity: .84; }
+    .bar-signal, .bar-wifi, .bar-battery {
+      display: inline-block;
+      height: 9px;
+      border: 1.5px solid currentColor;
+    }
+    .bar-signal { width: 15px; border-width: 0 0 1.5px 1.5px; transform: skew(-14deg); }
+    .bar-wifi { width: 13px; height: 8px; border-width: 1.5px 1.5px 0 0; border-radius: 0 8px 0 0; transform: rotate(-45deg); }
+    .bar-battery { width: 20px; border-radius: 3px; position: relative; }
+    .bar-battery:after { content: ""; position: absolute; right: -4px; top: 2px; width: 2px; height: 3px; background: currentColor; border-radius: 1px; }
+
+    .topbar {
+      height: 52px;
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      padding: 0 16px;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+
+    .icon-btn, .ghost-btn {
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 8px;
+      background: rgba(255,255,255,.78);
+      box-shadow: 0 8px 24px rgba(65, 83, 115, .08);
+      color: currentColor;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      font-weight: 750;
+    }
+
+    .ghost-btn { color: var(--muted); }
+    .content {
+      height: calc(812px - 90px);
+      overflow: hidden;
+      padding: 8px 18px 112px;
+    }
+    .content.no-tab { padding-bottom: 28px; }
+    .content.with-actions { padding-bottom: 116px; }
+
+    .hero {
+      padding: 18px 0 14px;
+    }
+    .eyebrow {
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 750;
+      color: var(--brand);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .eyebrow:before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--brand);
+    }
+    .hero h2 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.16;
+      letter-spacing: 0;
+      font-weight: 800;
+    }
+    .hero p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .row, .list-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .between { justify-content: space-between; }
+
+    .panel {
+      background: rgba(255,255,255,.86);
+      border: 1px solid rgba(228, 233, 242, .9);
+      border-radius: 8px;
+      margin-top: 14px;
+      box-shadow: 0 10px 30px rgba(49, 70, 104, .06);
+    }
+
+    .section-title {
+      margin: 22px 0 10px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .section-title small {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .pill, .chip, .tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+    }
+    .chip.active {
+      color: var(--brand);
+      border-color: rgba(47,110,234,.24);
+      background: linear-gradient(135deg, #eaf2ff, #f2edff 58%, #fff0f7);
+    }
+    .tag {
+      min-height: 22px;
+      padding: 0 8px;
+      background: #edf5ff;
+      color: #2e6fae;
+      font-size: 11px;
+    }
+    .tag.warn { background: var(--warn-soft); color: var(--warn); }
+    .tag.ok { background: var(--ok-soft); color: var(--ok); }
+
+    .primary, .secondary, .danger-btn {
+      height: 46px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 18px;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .primary { color: #fff; background: var(--brand-glow); box-shadow: 0 12px 28px rgba(47, 110, 234, .22); }
+    .secondary { color: var(--brand); background: linear-gradient(135deg, #eef5ff, #f2edff); }
+    .danger-btn { color: var(--danger); background: var(--danger-soft); }
+
+    .bottom-actions, .tabbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,.88);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+    }
+    .bottom-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 12px 18px 24px;
+    }
+    .bottom-actions.single { grid-template-columns: 1fr; }
+    .tabbar {
+      height: 84px;
+      padding: 8px 22px 16px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--soft);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .tab.active { color: var(--brand); }
+    .tab i {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      border: 1.5px solid currentColor;
+      display: block;
+      position: relative;
+    }
+    .tab.active i { background: linear-gradient(135deg, #eaf2ff, #f3edff); border-color: transparent; }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      overflow: hidden;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+    .metric {
+      background: rgba(255,255,255,.9);
+      padding: 13px 8px;
+      text-align: center;
+    }
+    .metric strong {
+      display: block;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+    .metric span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .course-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .course-tile {
+      min-height: 142px;
+      padding: 14px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.84);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 28px rgba(49, 70, 104, .05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .tile-media {
+      height: 48px;
+      width: 48px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #eaf2ff, #f2edff 58%, #fff1df);
+      color: var(--brand);
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      font-weight: 850;
+    }
+    .course-tile h3, .list-title {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.35;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .course-tile p, .list-meta {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .list {
+      background: rgba(255,255,255,.88);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .list-item {
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      min-height: 72px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .list-item:last-child { border-bottom: 0; }
+    .thumb {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: var(--brand);
+      background: linear-gradient(135deg, #eaf2ff, #f2edff 58%, #fff0f7);
+      font-weight: 850;
+    }
+    .thumb.blue { color: var(--brand-2); background: #f2edff; }
+    .thumb.warn { color: var(--warn); background: var(--warn-soft); }
+    .thumb.danger { color: var(--danger); background: var(--danger-soft); }
+    .thumb.ok { color: var(--ok); background: var(--ok-soft); }
+
+    .arrow { color: var(--soft); font-weight: 800; }
+
+    .login-brand {
+      padding: 36px 20px 24px;
+      background: linear-gradient(145deg, #eaf2ff 0%, #f2edff 48%, rgba(255,240,247,.62) 70%, rgba(255,246,232,0) 100%);
+    }
+    .logo {
+      width: 58px;
+      height: 58px;
+      border-radius: 8px;
+      background: var(--brand-glow);
+      box-shadow: 0 18px 40px rgba(47, 110, 234, .24);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      font-weight: 900;
+    }
+    .login-brand h1 {
+      margin: 18px 0 6px;
+      font-size: 30px;
+      letter-spacing: 0;
+    }
+    .login-brand p { margin: 0; color: var(--muted); font-size: 14px; }
+    .form { padding: 0 20px; }
+    .field { margin: 14px 0; }
+    .label { margin-bottom: 8px; color: var(--muted); font-size: 12px; font-weight: 750; }
+    .input, .select {
+      width: 100%;
+      height: 48px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 650;
+    }
+    .agreement {
+      margin: 16px 0 20px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .checkbox {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      background: var(--brand-glow);
+      color: #fff;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .home-head {
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .home-head h1 { margin: 0; font-size: 23px; line-height: 1.22; letter-spacing: 0; }
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #1f2a44, #344a79);
+      color: #fff;
+      font-weight: 850;
+    }
+    .feature {
+      margin: 0 18px 16px;
+      padding: 20px;
+      min-height: 164px;
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,0) 42%),
+        var(--brand-glow);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 22px 44px rgba(47, 110, 234, .22);
+    }
+    .feature p { margin: 6px 0 0; color: rgba(255,255,255,.75); line-height: 1.45; font-size: 13px; }
+    .feature .primary { width: 104px; height: 36px; background: #fff; color: var(--brand); box-shadow: none; }
+
+    .tabs-inline, .chips {
+      display: flex;
+      gap: 8px;
+      overflow: hidden;
+    }
+    .tabs-inline .chip { flex: 1; }
+    .filter-line {
+      margin: 12px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .course-card {
+      display: grid;
+      grid-template-columns: 82px 1fr;
+      gap: 12px;
+      padding: 12px;
+      min-height: 104px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 10px 28px rgba(49, 70, 104, .05);
+      margin-bottom: 10px;
+    }
+    .course-cover {
+      border-radius: 8px;
+      background: linear-gradient(135deg, #e7efff, #f2edff 58%, #fff2df);
+      display: grid;
+      place-items: center;
+      color: var(--brand);
+      font-weight: 900;
+      font-size: 22px;
+    }
+    .course-card h3 { margin: 2px 0 8px; font-size: 15px; line-height: 1.35; letter-spacing: 0; }
+    .course-card .meta { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .exam-banner {
+      padding: 12px;
+      background: var(--warn-soft);
+      color: var(--warn);
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 650;
+      border-top: 1px solid rgba(180,91,32,.12);
+      border-bottom: 1px solid rgba(180,91,32,.12);
+    }
+    .question-card {
+      padding: 18px;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 12px 34px rgba(49, 70, 104, .06);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin-top: 14px;
+    }
+    .question-card h2 {
+      margin: 14px 0 16px;
+      font-size: 18px;
+      line-height: 1.55;
+      letter-spacing: 0;
+    }
+    .option {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 10px;
+      align-items: center;
+      min-height: 56px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin-top: 10px;
+      background: #fff;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+    .option.active {
+      border-color: rgba(47,110,234,.35);
+      background: linear-gradient(135deg, #edf4ff, #f2edff);
+    }
+    .option b {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--surface-2);
+      display: grid;
+      place-items: center;
+      color: var(--brand);
+      font-size: 13px;
+    }
+    .blank {
+      display: inline-flex;
+      width: 28px;
+      height: 24px;
+      border-radius: 8px;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #edf4ff, #f2edff);
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 850;
+      vertical-align: middle;
+    }
+    .answer-row {
+      display: grid;
+      grid-template-columns: 84px 1fr auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 48px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .answer-row:last-child { border-bottom: 0; }
+    .answer-input {
+      color: var(--ink);
+      background: #f7f9fd;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      min-height: 36px;
+    }
+
+    .score-card {
+      padding: 22px 18px;
+      border-radius: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      text-align: center;
+    }
+    .score-card.ok { background: linear-gradient(180deg, #edf3ff, #fff 72%); border-color: rgba(47,110,234,.18); }
+    .score-card.fail { background: linear-gradient(180deg, #fff0f1, #fff); border-color: rgba(184,49,59,.18); }
+    .score {
+      font-size: 72px;
+      line-height: .92;
+      font-weight: 900;
+      letter-spacing: 0;
+      margin: 8px 0 10px;
+    }
+    .score span { font-size: 17px; font-weight: 800; }
+    .progress-row {
+      display: grid;
+      grid-template-columns: 54px 1fr 42px;
+      align-items: center;
+      gap: 10px;
+      min-height: 46px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .progress-row:last-child { border-bottom: 0; }
+    .track {
+      height: 8px;
+      border-radius: 999px;
+      background: #edf2f8;
+      overflow: hidden;
+    }
+    .track i {
+      display: block;
+      height: 100%;
+      width: var(--w);
+      background: var(--brand-glow);
+      border-radius: 999px;
+    }
+
+    .product-layout {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 12px;
+      height: calc(812px - 90px);
+      padding: 8px 12px 22px 0;
+    }
+    .side {
+      border-right: 1px solid var(--line);
+      padding: 4px 0 0 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .side button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 8px 0 0 8px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 750;
+    }
+    .side button.active {
+      color: var(--brand);
+      background: linear-gradient(135deg, #eaf2ff, #f2edff);
+      box-shadow: inset 3px 0 0 var(--brand);
+    }
+    .product-pane { overflow: hidden; padding-left: 0; }
+    .search {
+      margin: 0 0 10px;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 10px 28px rgba(49, 70, 104, .05);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .product-card {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .product-pic {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #f7fbff, #e5f0ff 50%, #f2edff);
+      border: 1px solid var(--line);
+      color: var(--brand);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 18px;
+    }
+    .product-card h3 { margin: 0; font-size: 14px; line-height: 1.3; letter-spacing: 0; }
+    .product-card p {
+      margin: 5px 0 7px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .course-strip .course-tile:nth-child(1) .tile-media,
+    .course-card:nth-of-type(3n + 1) .course-cover,
+    .product-card:nth-of-type(3n + 1) .product-pic {
+      background: linear-gradient(135deg, #e8f1ff, #f0e9ff 58%, #fff2dc);
+    }
+    .course-strip .course-tile:nth-child(2) .tile-media,
+    .course-card:nth-of-type(3n + 2) .course-cover,
+    .product-card:nth-of-type(3n + 2) .product-pic {
+      background: linear-gradient(135deg, #eef4ff, #ffe9f4 58%, #fff3df);
+    }
+    .course-card:nth-of-type(3n) .course-cover,
+    .product-card:nth-of-type(3n) .product-pic {
+      background: linear-gradient(135deg, #eaf2ff, #f6edff 48%, #ffeef7);
+    }
+
+    .video-hero {
+      height: 184px;
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,0) 44%),
+        linear-gradient(135deg, #2f6eea 0%, #7c3aed 58%, #ff7ab6 88%, #ffb454 135%);
+      color: #fff;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .video-hero h2 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+    .video-hero p { margin: 8px 0 0; color: rgba(255,255,255,.76); font-size: 13px; line-height: 1.45; }
+    .video-controls {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,.72);
+    }
+    .play {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.18);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 900;
+    }
+    .product-name-row h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+    .price {
+      margin: 10px 0;
+      color: var(--warn);
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+    .spec-row {
+      display: grid;
+      grid-template-columns: 82px 1fr;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .spec-row:last-child { border-bottom: 0; }
+    .spec-row b { color: var(--muted); font-weight: 700; }
+
+    .profile-head {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 56px 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .avatar.big { width: 56px; height: 56px; font-size: 20px; }
+    .profile-head h2 { margin: 0; font-size: 21px; letter-spacing: 0; }
+    .profile-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+
+    .cert-paper {
+      margin-top: 12px;
+      height: 226px;
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.88), rgba(255,250,240,.84)),
+        linear-gradient(135deg, #eef5ff, #fff3df);
+      border: 1px solid #ead2a6;
+      box-shadow: 0 18px 38px rgba(183, 106, 39, .12);
+      padding: 20px;
+      text-align: center;
+      color: #5b4024;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cert-paper h2 { margin: 6px 0; font-size: 22px; letter-spacing: 0; }
+    .cert-name { font-size: 24px; font-weight: 900; letter-spacing: 0; color: #2b2015; }
+    .stamp {
+      width: 54px;
+      height: 54px;
+      border: 2px solid #b74a36;
+      border-radius: 50%;
+      color: #b74a36;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 900;
+      margin-left: auto;
+    }
+
+    .player {
+      background: #101828;
+      color: #f8fbfa;
+    }
+    .player-stage {
+      height: 322px;
+      padding: 42px 18px 16px;
+      background:
+        linear-gradient(145deg, rgba(47,110,234,.48), transparent 48%),
+        linear-gradient(135deg, rgba(124,58,237,.34), rgba(255,122,182,.18) 58%, rgba(255,180,84,.14) 82%),
+        linear-gradient(0deg, #101828, #17233c);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .player-title { font-size: 20px; line-height: 1.25; font-weight: 850; letter-spacing: 0; }
+    .player-panel {
+      background: linear-gradient(180deg, #fbfdff, #f6f8fc);
+      color: var(--ink);
+      height: 490px;
+      border-radius: 8px 8px 0 0;
+      padding: 18px;
+    }
+    .lesson-row {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 12px;
+      min-height: 58px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .lesson-row:last-child { border-bottom: 0; }
+
+    .center-state {
+      height: calc(812px - 38px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 32px;
+      text-align: center;
+    }
+    .state-mark {
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, #ffecee, #fff3e4);
+      color: var(--danger);
+      display: grid;
+      place-items: center;
+      font-size: 38px;
+      font-weight: 900;
+    }
+    .center-state h1 { margin: 0; font-size: 26px; letter-spacing: 0; }
+    .center-state p { margin: 10px 0 24px; color: var(--muted); line-height: 1.55; }
+
+    .debug-block {
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .debug-block:last-child { border-bottom: 0; }
+    .radio-row {
+      display: grid;
+      grid-template-columns: 18px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 54px;
+      border-bottom: 1px solid var(--line);
+    }
+    .radio-row:last-child { border-bottom: 0; }
+    .radio-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--soft);
+    }
+    .radio-row.active .radio-dot {
+      border: 4px solid var(--brand);
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    const screens = [
+      ["login", "登录"],
+      ["home", "首页"],
+      ["course-list", "课程列表"],
+      ["player", "课程播放"],
+      ["exam-list", "考试列表"],
+      ["exam-start", "考前确认"],
+      ["exam", "单选考试"],
+      ["exam-fill", "填空考试"],
+      ["exam-result", "考试通过"],
+      ["exam-result-failed", "考试未通过"],
+      ["certificate", "证书详情"],
+      ["product-guide", "产品说明"],
+      ["product-detail", "产品详情"],
+      ["profile", "我的"],
+      ["dev-debug", "开发者调试"],
+      ["error", "加载失败"]
+    ];
+
+    const tabbar = active => `
+      <nav class="tabbar">
+        ${["首页","学习","考试","我的"].map((name, idx) => `
+          <div class="tab ${active === name ? "active" : ""}"><i></i><span>${name}</span></div>
+        `).join("")}
+      </nav>`;
+
+    const status = (dark = false) => `
+      <div class="status ${dark ? "dark" : ""}">
+        <span>9:41</span>
+        <span class="sys"><span class="bar-signal"></span><span class="bar-wifi"></span><span class="bar-battery"></span></span>
+      </div>`;
+
+    const topbar = title => `
+      <div class="topbar">
+        <button class="icon-btn">‹</button>
+        <h1>${title}</h1>
+        <button class="ghost-btn">···</button>
+      </div>`;
+
+    const courses = [
+      ["智能家居系统工程师认证", "12课时", "热门精选", "工程"],
+      ["云端协同方案实操", "6课时", "认证课程", "云端"],
+      ["智能照明快速入门", "15分钟", "热门精选", "照明"],
+      ["工业网关部署规范", "8课时", "新课上架", "网关"],
+      ["安全管理规范", "20分钟", "安全专题", "安全"],
+      ["设备安装调试技巧", "5课时", "岗位必修", "调试"]
+    ];
+
+    const products = [
+      ["RG-EAP262(G) V2", "1775M 双频千兆吸顶 AP，支持 Wi-Fi 6、AI 漫游与 PoE 供电。", ["热销", "1类保卡"], "AP"],
+      ["RG-EAP262(E)", "支持 160M 频宽，整机最大无线速率 3000Mbps。", ["Wi-Fi 6", "保修1年"], "E"],
+      ["RG-EAP162(E)", "8.5 毫米超薄面板设计，适合酒店客房和办公室暗盒安装。", ["面板 AP", "千兆口"], "16"],
+      ["QXT-GW Pro 智能中枢", "支持多协议设备接入，统一管理灯光、安防、环境与能源设备。", ["多协议", "本地联动"], "GW"],
+      ["QXT-Lock X3 智能门锁", "支持指纹、密码、NFC 与临时授权，适合家庭和公寓场景。", ["安防", "远程授权"], "L"],
+      ["QXT-Sense 环境传感器", "采集温湿度、光照和人体存在数据，为自动化策略提供触发条件。", ["环境感知", "低功耗"], "S"]
+    ];
+
+    const views = {
+      login: () => `
+        <section class="screen">${status()}
+          <div class="login-brand">
+            <div class="logo">企</div>
+            <h1>企训通</h1>
+            <p>智能家居行业领先的培训平台</p>
+          </div>
+          <div class="form">
+            <div class="field"><div class="label">企业</div><div class="select">智家科技总部 <span class="arrow">⌄</span></div></div>
+            <div class="field"><div class="label">工号 / 手机号</div><div class="input">请输入工号或手机号</div></div>
+            <div class="field"><div class="label">密码</div><div class="input">请输入密码</div></div>
+            <div class="agreement"><span class="checkbox">✓</span><span>我已阅读并同意 <b>服务协议</b> 和 <b>隐私条款</b></span></div>
+            <button class="primary" style="width:100%">立即开启学习</button>
+            <div class="row between" style="margin-top:18px;color:var(--muted);font-size:13px"><span>还没有账号？立即注册</span><span>忘记密码？</span></div>
+          </div>
+        </section>`,
+
+      home: () => `
+        <section class="screen">${status()}
+          <header class="home-head"><h1>欢迎回来，<br>张小智</h1><div class="avatar">张</div></header>
+          <section class="feature"><div><span class="pill">推荐课程</span><h2 style="margin:16px 0 0;font-size:24px;letter-spacing:0">新员工入职培训</h2><p>快速上手，从这里开始</p></div><button class="primary">立即学习</button></section>
+          <main class="content" style="height:auto;padding-top:0">
+            <div class="course-strip">
+              <div class="course-tile"><div class="tile-media">安</div><div><h3>安全专题</h3><p>安全管理提升<br>规范操作，安全第一</p></div></div>
+              <div class="course-tile"><div class="tile-media">升</div><div><h3>进阶提升</h3><p>领导力发展<br>管理能力全面升级</p></div></div>
+            </div>
+            <div class="section-title">岗位必修（安装岗）<small>查看全部</small></div>
+            <div class="list">
+              <div class="list-item"><div class="thumb">证</div><div><div class="list-title">智能家居系统工程师认证</div><div class="list-meta">12课时 · 专业证书</div></div><div class="arrow">›</div></div>
+              <div class="list-item"><div class="thumb blue">云</div><div><div class="list-title">云端协同方案实操</div><div class="list-meta">6课时 · 继续学习</div></div><div class="arrow">›</div></div>
+            </div>
+          </main>${tabbar("首页")}
+        </section>`,
+
+      "course-list": () => `
+        <section class="screen">${status()}${topbar("岗位必修")}
+          <main class="content">
+            <div class="tabs-inline"><button class="chip active">售前</button><button class="chip">售后</button></div>
+            <div class="chips" style="margin-top:10px"><span class="chip active">全部</span><span class="chip">产品认知</span><span class="chip">方案设计</span><span class="chip">销售话术</span></div>
+            <div class="filter-line"><span>售前 · 全部 · 共 6 门课程</span><span>最新 ⌄</span></div>
+            ${courses.map((c, i) => `<article class="course-card"><div class="course-cover">${c[3]}</div><div><span class="tag ${i === 4 ? "warn" : ""}">${c[2]}</span><h3>${c[0]}</h3><div class="meta"><span class="tag">${c[1]}</span><span class="tag ok">${i % 2 ? "认证" : "必修"}</span></div></div></article>`).join("")}
+          </main>${tabbar("学习")}
+        </section>`,
+
+      player: () => `
+        <section class="screen player">
+          <div class="player-stage">
+            <div class="row between"><button class="icon-btn" style="background:rgba(255,255,255,.12)">‹</button><div class="row" style="gap:8px"><span class="tag">2.0X</span><span class="tag">1080P</span></div></div>
+            <div><div class="player-title">2026款传感核心组件安装规范</div><p style="margin:8px 0 0;color:rgba(255,255,255,.72);font-size:13px">本节重点：红外传感器的防死角部署与盲点规避。</p></div>
+            <div class="video-controls"><div class="play">▶</div><div class="track"><i style="--w:58%"></i></div><span>08:45 / 15:20</span></div>
+          </div>
+          <div class="player-panel">
+            <div class="row between"><button class="secondary">离线缓存</button><button class="secondary">分享同事</button></div>
+            <div class="chips" style="margin:18px 0 8px"><span class="chip active">课程目录</span><span class="chip">写笔记 (12)</span><span class="chip">课堂提问</span></div>
+            <div class="lesson-row"><b>01</b><div><div class="list-title">基础：传感器工作原理</div><div class="list-meta">正在播放 08:45 / 15:20</div></div><span class="tag ok">播放</span></div>
+            <div class="lesson-row"><b>02</b><div><div class="list-title">部署：2026款硬件安装实操</div><div class="list-meta">时长 12分钟</div></div><span class="tag">完成</span></div>
+            <div class="lesson-row"><b>03</b><div><div class="list-title">进阶：多机联动信号补偿</div><div class="list-meta">时长 18分钟</div></div><span class="tag warn">锁定</span></div>
+          </div>
+        </section>`,
+
+      "exam-list": () => `
+        <section class="screen">${status()}${topbar("考试")}
+          <main class="content">
+            <section class="hero"><div class="eyebrow">考试中心</div><h2>待完成考试与历史记录</h2><p>查看企业安排的考试任务，点击待完成考试即可进入考前确认并开始考试。</p></section>
+            <div class="section-title">待完成考试 <small>2 场</small></div>
+            <div class="list">
+              <div class="list-item"><div class="thumb warn">考</div><div><div class="list-title">智能家居安装与调试能力认证</div><div class="list-meta">30 分钟 · 20 题<br>截止 2026.05.30 18:00 · 安装岗必修</div></div><div class="arrow">›</div></div>
+              <div class="list-item"><div class="thumb blue">门</div><div><div class="list-title">智能门锁售后服务规范</div><div class="list-meta">20 分钟 · 15 题<br>截止 2026.06.02 12:00 · 售后岗必修</div></div><div class="arrow">›</div></div>
+            </div>
+            <div class="section-title">考试记录 <small>3 条 · 1 条失效</small></div>
+            <div class="list">
+              <div class="list-item"><div class="thumb ok">86</div><div><div class="list-title">智能家居安装与调试能力认证</div><div class="list-meta">已通过 · 2026.05.28 完成 · 可查看证书</div></div><div class="arrow">›</div></div>
+              <div class="list-item"><div class="thumb danger">58</div><div><div class="list-title">全屋智能基础知识测评</div><div class="list-meta">未通过 · 2026.05.20 完成 · 可重新考试</div></div><div class="arrow">›</div></div>
+              <div class="list-item"><div class="thumb">失</div><div><div class="list-title">客户沟通与服务标准</div><div class="list-meta">记录保留期已过 · 点击查看处理提示</div></div><span class="tag">不可查看</span></div>
+            </div>
+          </main>${tabbar("考试")}
+        </section>`,
+
+      "exam-start": () => `
+        <section class="screen">${status()}${topbar("考前确认")}
+          <main class="content with-actions">
+            <section class="hero"><div class="eyebrow">认证考试 · 即将开始</div><h2>智能家居方案顾问认证考试</h2><p>用于确认你已掌握全屋智能方案设计、设备安装规范、网关组网与售后处理流程。</p></section>
+            <div class="metric-grid"><div class="metric"><strong>30</strong><span>分钟</span></div><div class="metric"><strong>20</strong><span>题目数量</span></div><div class="metric"><strong>70</strong><span>通过分</span></div></div>
+            <div class="section-title">考试要求说明</div>
+            <div class="list">
+              ${["请确认当前账号为本人使用，考试结果将同步到个人认证记录。","考试开始后不可暂停；倒计时结束时系统将自动提交。","认证考试已开启切屏监测，切屏 2 次将自动交卷。","请保持网络稳定，提交前可检查未完成题目。"].map((t,i)=>`<div class="list-item" style="grid-template-columns:32px 1fr"><div class="thumb">${i+1}</div><div class="list-meta" style="color:var(--ink)">${t}</div></div>`).join("")}
+            </div>
+            <p style="font-size:12px;color:var(--muted);line-height:1.5">点击“去开始”表示你已确认考试信息和相关要求。</p>
+          </main><div class="bottom-actions"><button class="secondary">取消</button><button class="primary">去开始</button></div>
+        </section>`,
+
+      exam: () => `
+        <section class="screen">${status()}<div class="topbar"><button class="icon-btn">×</button><h1>28:45</h1><div class="pill">05/20</div></div>
+          <div class="exam-banner">由于是认证考试，系统已开启切屏监测，切屏2次将自动交卷。</div>
+          <main class="content with-actions">
+            <section class="question-card"><div class="row between"><span class="tag">单选题</span><span class="tag">分值：5分</span></div><h2>在 2026 款全屋智能方案中，当 Zigbee 协议网关遭遇厚壁阻挡信号衰减时，以下哪项操作是符合《安装规范V3》的？</h2>
+              ${["直接增加网关发射功率至最大值","在阻拦物中间增加一个路由节点(Router)","更换为 2.4G Wi-Fi 网关进行透传","将网关外壳拆除以减少物理损耗"].map((t,i)=>`<div class="option ${i===1?"active":""}"><b>${"ABCD"[i]}</b><span>${t}</span></div>`).join("")}
+            </section>
+          </main><div class="bottom-actions"><button class="secondary">上一题</button><button class="primary">确认进入第6题</button></div>
+        </section>`,
+
+      "exam-fill": () => `
+        <section class="screen">${status()}<div class="topbar"><button class="icon-btn">×</button><h1>28:45</h1><div class="pill">06/20</div></div>
+          <div class="exam-banner">由于是认证考试，系统已开启切屏监测，切屏2次将自动交卷。</div>
+          <main class="content with-actions">
+            <section class="question-card"><div class="row between"><span class="tag">填空题</span><span class="tag">分值：10分</span></div><h2>Zigbee 协议中，设备角色主要分为 <span class="blank">1</span>、<span class="blank">2</span> 和 <span class="blank">3</span> 三种，其中负责网络路由功能的是 <span class="blank">4</span>。</h2></section>
+            <div class="section-title">请在下方填写答案</div>
+            <div class="panel" style="padding:0 14px">
+              ${["第一个空","第二个空","第三个空","第四个空"].map((t,i)=>`<div class="answer-row"><span>${t}</span><div class="answer-input">${i===0?"协调器":i===1?"终端设备":i===2?"路由器":"路由器"}</div><span class="tag ok">已填写</span></div>`).join("")}
+            </div>
+          </main><div class="bottom-actions"><button class="secondary">上一题</button><button class="primary">确认进入第7题</button></div>
+        </section>`,
+
+      "exam-result": () => resultScreen(true),
+      "exam-result-failed": () => resultScreen(false),
+
+      certificate: () => `
+        <section class="screen">${status()}${topbar("证书详情")}
+          <main class="content with-actions">
+            <section class="hero"><div class="eyebrow">已获得证书</div><h2>智能家居安装与调试能力认证</h2><p>你已通过本次考试，证书可下载保存，并同步到个人培训档案。</p></section>
+            <div class="cert-paper"><div><div style="font-size:11px;font-weight:850;letter-spacing:0;color:#8d744e">QIXUNTONG CERTIFICATE</div><h2>能力认证证书</h2></div><div class="cert-name">张明</div><p style="margin:0;font-size:12px;line-height:1.55">已完成智能家居安装与调试能力认证考试，并达到企训通培训中心认证通过标准。</p><div class="row between"><span style="font-size:11px;text-align:left">编号 QXT-SH-20260528-0086<br>颁发日期 2026.05.28</span><div class="stamp">企训通<br>认证</div></div></div>
+            <div class="section-title">证书信息</div>
+            <div class="panel" style="padding:0 14px">${[["获证人","张明"],["考试成绩","86 分"],["通过时间","2026.05.28 17:42"],["证书编号","QXT-SH-20260528-0086"],["发证机构","企训通培训中心"]].map(r=>`<div class="spec-row"><b>${r[0]}</b><span>${r[1]}</span></div>`).join("")}</div>
+          </main><div class="bottom-actions"><button class="primary">下载证书</button><button class="secondary">分享证书</button></div>
+        </section>`,
+
+      "product-guide": () => `
+        <section class="screen">${status()}${topbar("产品说明")}
+          <main class="product-layout">
+            <aside class="side">${["全部","网关","无线","安防","开关","传感器","照明","能源"].map((t,i)=>`<button class="${i===0?"active":""}">${t}</button>`).join("")}</aside>
+            <section class="product-pane">
+              <div class="search">搜索型号、能力或场景</div>
+              <div class="chips"><span class="chip active">综合</span><span class="chip">新品</span><span class="chip">热门</span><span class="chip">筛选</span></div>
+              <div class="chips" style="margin-top:8px"><span class="chip active">全部</span><span class="chip">吸顶 AP</span><span class="chip">面板</span><span class="chip">门锁</span></div>
+              <div class="filter-line"><b style="color:var(--ink);font-size:16px">全部产品</b><span>6 款</span></div>
+              ${products.map(p=>`<article class="product-card"><div class="product-pic">${p[3]}</div><div><h3>${p[0]}</h3><p>${p[1]}</p><div class="row" style="gap:6px;flex-wrap:wrap">${p[2].map(t=>`<span class="tag">${t}</span>`).join("")}</div></div></article>`).join("")}
+            </section>
+          </main>
+        </section>`,
+
+      "product-detail": () => `
+        <section class="screen">${status()}${topbar("产品详情")}
+          <main class="content no-tab">
+            <section class="video-hero"><div><span class="pill" style="background:rgba(255,255,255,.16);color:#fff">产品介绍视频</span><h2 style="margin-top:18px">无线覆盖<br>部署说明</h2><p>3 分钟了解吸顶 AP 的安装场景、速率能力与供电方式。</p></div><div class="video-controls"><div class="play">▶</div><div class="track"><i style="--w:18%"></i></div><span>0:08 / 0:58</span></div></section>
+            <section class="panel" style="padding:16px">
+              <div class="product-name-row"><div class="row between"><h2>RG-EAP262(G) V2</h2><span class="tag">复制</span></div><div class="price">¥699</div><p class="list-meta" style="font-size:13px">1775M 双频千兆吸顶 AP，1 个千兆 LAN 口上联，内置天线，支持 2.4GHz / 5GHz 双频通信、AI 智能漫游、PoE 供电和本地供电。</p><div class="tag" style="margin-top:10px">EAN：6971693279841</div></div>
+            </section>
+            <div class="section-title">说明信息 <small>问参数</small></div>
+            <section class="panel" style="padding:0 14px">${[["上市时间","2024-04"],["产品类型","吸顶 AP"],["蓝牙","不支持"],["传输速率","整机最大无线速率：1775Mbps<br>2.4GHz：574Mbps<br>5GHz：1201Mbps"],["射频设计","双射频，整机支持 4 条空间流；2.4GHz：2x2 MU-MIMO；5GHz：2x2 MU-MIMO"],["Wi-Fi 标准","Wi-Fi 4（IEEE 802.11b/g/n）<br>Wi-Fi 6（IEEE 802.11ax）"]].map(r=>`<div class="spec-row"><b>${r[0]}</b><span>${r[1]}</span></div>`).join("")}</section>
+          </main>
+        </section>`,
+
+      profile: () => `
+        <section class="screen">${status()}
+          <header class="profile-head"><div class="avatar big">张</div><div><h2>张小智</h2><p>安装岗 · 智家科技总部</p></div><button class="secondary" style="height:34px">编辑</button></header>
+          <main class="content" style="padding-top:0">
+            <div class="metric-grid"><div class="metric"><strong>126</strong><span>累计学习时长</span></div><div class="metric"><strong>5</strong><span>获得证书</span></div><div class="metric"><strong>82%</strong><span>完成率</span></div></div>
+            <div class="section-title">最近学习记录</div>
+            <div class="list">
+              ${[["智慧安防：2024传感器安装规范","12分钟前","安"],["云端协同方案实操视频","2小时前","云"],["工业网关部署规范","昨天","网"]].map(r=>`<div class="list-item"><div class="thumb">${r[2]}</div><div><div class="list-title">${r[0]}</div><div class="list-meta">${r[1]}</div></div><div class="arrow">▶</div></div>`).join("")}
+            </div>
+            <div class="section-title">账号与工具</div>
+            <div class="list">
+              <div class="list-item"><div class="thumb blue">隐</div><div class="list-title">系统设置与隐私</div><div class="arrow">›</div></div>
+              <div class="list-item"><div class="thumb">离</div><div class="list-title">离线缓存管理</div><div class="arrow">›</div></div>
+            </div>
+            <button class="danger-btn" style="width:100%;margin-top:16px">退出当前企业账号</button>
+          </main>${tabbar("我的")}
+        </section>`,
+
+      "dev-debug": () => `
+        <section class="screen">${status()}${topbar("开发者调试")}
+          <main class="content with-actions">
+            <section class="hero"><div class="eyebrow">Debug · 内部环境</div><h2>切换调试配置前，请确认当前账号和接口环境。</h2><p>此页面用于培训 App 内部联调，保存后仅影响当前设备的调试参数。</p></section>
+            <div class="section-title">接口环境</div>
+            <section class="panel" style="padding:0 14px">
+              ${[["测试环境","api-test.qixuntong.local","当前"],["预发环境","api-mock.qixuntong.com","灰度"],["生产环境","api.qixuntong.com","线上"]].map((r,i)=>`<div class="radio-row ${i===0?"active":""}"><span class="radio-dot"></span><div><div class="list-title">${r[0]}</div><div class="list-meta">${r[1]}</div></div><span class="tag">${r[2]}</span></div>`).join("")}
+            </section>
+            <div class="section-title">调试表单</div>
+            <section class="panel" style="padding:14px">
+              <div class="field"><div class="label">调试范围</div><div class="select">考试流程</div></div>
+              <div class="field"><div class="label">接口路径</div><div class="input">/training/exam/submit</div></div>
+              <div class="field"><div class="label">测试用户 ID</div><div class="input">u_20260528_zhang</div></div>
+              <div class="field"><div class="label">调试备注</div><div class="input" style="height:62px;align-items:flex-start;padding-top:10px">验证考试提交、结果页、证书跳转链路。</div></div>
+            </section>
+          </main><div class="bottom-actions"><button class="secondary">取消</button><button class="primary">保存</button></div>
+        </section>`,
+
+      error: () => `
+        <section class="screen">${status()}
+          <main class="center-state">
+            <div class="state-mark">!</div>
+            <h1>加载失败</h1>
+            <p>网络连接出现问题，请检查后重试。</p>
+            <button class="primary" style="width:100%;margin-bottom:10px">重试</button>
+            <button class="secondary" style="width:100%">返回首页</button>
+          </main>
+        </section>`
+    };
+
+    function resultScreen(passed) {
+      return `
+        <section class="screen">${status()}${topbar("考试成绩")}
+          <main class="content with-actions">
+            <section class="score-card ${passed ? "ok" : "fail"}">
+              <span class="pill ${passed ? "" : "danger"}">${passed ? "已通过认证" : "未通过认证"}</span>
+              <div class="score" style="color:${passed ? "var(--ok)" : "var(--danger)"}">${passed ? "86" : "58"}<span> 分</span></div>
+              <h2 style="margin:0;font-size:18px;letter-spacing:0">智能家居方案顾问认证考试</h2>
+              <p class="list-meta" style="font-size:13px">${passed ? "成绩已同步到你的个人认证记录。本次已达到方案顾问认证标准。" : "本次未达到 70 分通过线，建议先补齐网关组网、售后工单和多选判断。"}</p>
+              ${passed ? `<button class="secondary" style="margin-top:14px">查看证书</button>` : ""}
+            </section>
+            <div class="section-title">考试概览</div>
+            <div class="metric-grid"><div class="metric"><strong>${passed ? "17/20" : "11/20"}</strong><span>答对题数</span></div><div class="metric"><strong>${passed ? "26:18" : "29:42"}</strong><span>作答用时</span></div><div class="metric"><strong>${passed ? "85%" : "55%"}</strong><span>正确率</span></div></div>
+            <div class="section-title">题型表现 <small>查看答题</small></div>
+            <section class="panel" style="padding:0 14px">
+              ${[[ "单选题", passed ? "9/10" : "6/10", passed ? "90%" : "60%" ],[ "多选题", passed ? "4/5" : "2/5", passed ? "80%" : "40%" ],[ "填空题", passed ? "4/5" : "3/5", passed ? "80%" : "60%" ]].map(r=>`<div class="progress-row"><span>${r[0]}</span><div class="track"><i style="--w:${r[2]}"></i></div><b>${r[1]}</b></div>`).join("")}
+            </section>
+          </main><div class="bottom-actions"><button class="${passed ? "secondary" : "primary"}">${passed ? "返回首页" : "去学习"}</button><button class="${passed ? "primary" : "secondary"}">${passed ? "再练一次" : "重新考试"}</button></div>
+        </section>`;
+    }
+
+    const params = new URLSearchParams(location.search);
+    const screen = params.get("screen");
+    const app = document.getElementById("app");
+    if (screen && views[screen]) {
+      document.body.style.background = "transparent";
+      app.innerHTML = views[screen]();
+    } else {
+      app.innerHTML = `<main class="gallery"><h1>企训通 UI Redesign</h1><div class="grid">${screens.map(([id, name]) => `<figure><div class="shot">${views[id]()}</div><figcaption style="margin:10px 0 0;font:700 14px sans-serif">${name} · ${id}</figcaption></figure>`).join("")}</div></main>`;
+    }
+  </script>
+</body>
+</html>

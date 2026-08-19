@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
 import Taro from '@tarojs/taro';
-import { Button, Input, Picker, Text, View } from '@tarojs/components';
+import { Button, Image, Input, Picker, Text, View } from '@tarojs/components';
 import AgreementModal from '../../components/AgreementModal';
-import Icon from '../../components/Icon';
 import { useAuth } from '../../contexts/AuthContext';
 import { fetchLoginConfig, login } from '../../services/api';
 import { Agreement, Company } from '../../types';
+import heroDecoration from '../../assets/login/hero-decoration.png';
+import glowlinkWordmark from '../../assets/login/glowlink-wordmark.png';
+import enterpriseIcon from '../../assets/login/icon-enterprise.png';
+import chevronIcon from '../../assets/login/icon-chevron.png';
+import userIcon from '../../assets/login/icon-user.png';
+import lockIcon from '../../assets/login/icon-lock.png';
+import eyeIcon from '../../assets/login/icon-eye.png';
+import eyeHiddenIcon from '../../assets/login/icon-eye-hidden.png';
 
 export default function LoginPage() {
   const { signIn, initializing, isAuthenticated } = useAuth();
@@ -16,6 +23,7 @@ export default function LoginPage() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
 
@@ -77,48 +85,69 @@ export default function LoginPage() {
   }
 
   return (
-    <View className="page login-page page-white">
+    <View className="page login-page">
+      <Image className="login-hero-decoration" src={heroDecoration} mode="scaleToFill" />
+
       <View className="login-content">
         <View className="brand-section">
-          <View className="brand-logo gradient"><Icon name="Logo" className="brand-logo-icon" /></View>
-          <Text className="brand-title">企训通</Text>
+          <Image className="brand-wordmark" src={glowlinkWordmark} mode="aspectFit" />
           <Text className="brand-subtitle">智能家居行业领先的培训平台</Text>
         </View>
 
-        <View className="login-form">
-          <View className="field-label">企业</View>
-          <Picker mode="selector" range={companies.map(company => company.name)} value={selectedIndex} onChange={event => setSelectedIndex(Number(event.detail.value))}>
-            <View className="input-shell">
-              <Text className="input-text">{selectedCompany?.name || '请选择企业'}</Text>
-              <Icon name="ChevronDown" className="input-icon" />
+        <View className="login-card">
+          <View className="login-form">
+            <Picker mode="selector" range={companies.map(company => company.name)} value={selectedIndex} onChange={event => setSelectedIndex(Number(event.detail.value))}>
+              <View className="login-field enterprise-field">
+                <Image className="field-image" src={enterpriseIcon} mode="aspectFit" />
+                <Text className="input-text">{selectedCompany?.name || '企业选择'}</Text>
+                <Image className="field-image field-action chevron-image" src={chevronIcon} mode="aspectFit" />
+              </View>
+            </Picker>
+
+            <View className="login-field">
+              <Image className="field-image" src={userIcon} mode="aspectFit" />
+              <Input className="input-control" placeholder="工号/手机号" value={username} onInput={event => setUsername(event.detail.value)} />
             </View>
-          </Picker>
 
-          <View className="input-shell">
-            <Icon name="User" className="input-icon" />
-            <Input className="input-control" placeholder="工号 / 手机号" value={username} onInput={event => setUsername(event.detail.value)} />
+            <View className="login-field">
+              <Image className="field-image" src={lockIcon} mode="aspectFit" />
+              <Input
+                className="input-control"
+                password={!passwordVisible}
+                placeholder="密码"
+                value={password}
+                onInput={event => setPassword(event.detail.value)}
+              />
+              <View
+                className="field-action password-visibility"
+                onClick={() => setPasswordVisible(value => !value)}
+              >
+                <Image
+                  className="field-image eye-image"
+                  src={passwordVisible ? eyeIcon : eyeHiddenIcon}
+                  mode="aspectFit"
+                />
+              </View>
+            </View>
           </View>
 
-          <View className="input-shell">
-            <Icon name="Lock" className="input-icon" />
-            <Input className="input-control" password placeholder="请输入密码" value={password} onInput={event => setPassword(event.detail.value)} />
+          <View className="quick-row">
+            <View className="agree-row">
+              <View
+                className={`checkbox ${agreedToTerms ? 'checked' : ''}`}
+                onClick={() => setAgreedToTerms(value => !value)}
+              >
+                {agreedToTerms ? '✓' : ''}
+              </View>
+              <Text className="agreement-prefix">我已阅读并同意</Text>
+              <Text className="link agreement-link" onClick={() => setShowAgreementModal(true)}>服务协议和隐私条款</Text>
+            </View>
+            <Text className="forgot">忘记密码?</Text>
           </View>
-        </View>
 
-        <View className="quick-row">
-          <View className="agree-row" onClick={() => setAgreedToTerms(value => !value)}>
-            <View className={`checkbox ${agreedToTerms ? 'checked' : ''}`}>{agreedToTerms ? '✓' : ''}</View>
-            <Text>我已阅读并同意</Text>
-            <Text className="link" onClick={() => setShowAgreementModal(true)}>服务协议和隐私条款</Text>
-          </View>
-          <Text className="forgot">忘记密码？</Text>
-        </View>
+          <Button className="primary-btn login-button" loading={loggingIn} onClick={handleLogin}>立即开启学习</Button>
 
-        <Button className="primary-btn login-button" loading={loggingIn} onClick={handleLogin}>立即开启学习</Button>
-
-        <View className="register-row">
-          <Text>还没有账号？</Text>
-          <Text className="link" onClick={() => Taro.navigateTo({ url: '/pages/register/index' })}>立即注册</Text>
+          <Button className="login-register-button" onClick={() => Taro.navigateTo({ url: '/pages/register/index' })}>立即注册</Button>
         </View>
       </View>
 

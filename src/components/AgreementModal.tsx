@@ -19,9 +19,10 @@ export default function AgreementModal({
   return (
     <View className="agreement-mask">
       <View className="agreement-panel">
+        <View className="agreement-handle" />
         <View className="agreement-head">
           <Text className="agreement-title">服务协议与隐私条款</Text>
-          <Text className="agreement-close" onClick={onClose}>×</Text>
+          <View className="agreement-close" onClick={onClose}>×</View>
         </View>
         <ScrollView scrollY className="agreement-body">
           {blocks.map(block => (

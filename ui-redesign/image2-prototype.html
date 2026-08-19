@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>企训通 image2 1:1 原型稿</title>
+  <style>
+    :root {
+      --blue: #2f6ff2;
+      --blue-2: #5b8fff;
+      --blue-3: #9fc8ff;
+      --navy: #14213d;
+      --muted: #7b879d;
+      --line: #e8eef8;
+      --bg: #edf5ff;
+      --soft: #f6f9ff;
+      --orange: #ff7847;
+      --purple: #a785ff;
+      --shadow: 0 18px 36px rgba(53, 94, 166, .18);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      color: var(--navy);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #edf5ff;
+    }
+
+    .board {
+      width: 1024px;
+      height: 1536px;
+      padding: 24px 30px 28px;
+      background:
+        radial-gradient(circle at 8% 2%, rgba(130, 179, 255, .42), transparent 280px),
+        radial-gradient(circle at 95% 10%, rgba(171, 194, 255, .32), transparent 320px),
+        linear-gradient(180deg, #f4f8ff 0%, #edf5ff 52%, #eaf4ff 100%);
+      overflow: hidden;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px 26px;
+    }
+
+    .unit {
+      width: 220px;
+      height: 350px;
+    }
+
+    .caption {
+      height: 24px;
+      text-align: center;
+      font-size: 15px;
+      line-height: 20px;
+      font-weight: 800;
+      color: #1f63df;
+      letter-spacing: .02em;
+    }
+
+    .phone {
+      width: 220px;
+      height: 326px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(221, 232, 249, .9);
+      position: relative;
+    }
+
+    .pad { padding: 14px; }
+    .mini { font-size: 8px; }
+    .xs { font-size: 9px; }
+    .sm { font-size: 10px; }
+    .md { font-size: 12px; }
+    .bold { font-weight: 800; }
+    .muted { color: var(--muted); }
+    .blue { color: var(--blue); }
+    .orange { color: var(--orange); }
+    .center { text-align: center; }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 24px;
+      gap: 8px;
+    }
+    .title { font-size: 11px; font-weight: 850; }
+    .round {
+      width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      background: #eef5ff;
+      font-size: 10px;
+      font-weight: 900;
+    }
+    .ghost {
+      height: 18px;
+      padding: 0 8px;
+      border-radius: 9px;
+      background: #f1f6ff;
+      color: var(--blue);
+      border: 0;
+      font-size: 8px;
+      font-weight: 750;
+    }
+    .primary {
+      height: 28px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      background: linear-gradient(135deg, #2f6ff2, #4e8cff);
+      font-size: 10px;
+      font-weight: 850;
+      box-shadow: 0 8px 18px rgba(47, 111, 242, .24);
+    }
+    .outline {
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid #dce7f8;
+      background: #fff;
+      color: var(--blue);
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 18px;
+      padding: 0 8px;
+      border-radius: 10px;
+      background: #eef5ff;
+      color: var(--blue);
+      font-size: 8px;
+      font-weight: 800;
+    }
+    .pill.active {
+      color: #fff;
+      background: linear-gradient(135deg, #2f6ff2, #6699ff);
+    }
+    .pill.orange {
+      color: #e46a2f;
+      background: #fff0e8;
+    }
+    .hero {
+      border-radius: 10px;
+      padding: 12px;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.2), rgba(255,255,255,0) 45%),
+        linear-gradient(135deg, #2f6ff2, #62a2ff);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero:after {
+      content: "";
+      position: absolute;
+      right: 12px;
+      top: 15px;
+      width: 58px;
+      height: 42px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(255,255,255,.72), rgba(255,255,255,.24));
+      transform: rotate(-8deg);
+    }
+    .hero h2 {
+      margin: 6px 0 4px;
+      font-size: 15px;
+      line-height: 1.15;
+    }
+    .hero p { margin: 0; font-size: 9px; opacity: .86; }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(50, 90, 160, .06);
+    }
+    .soft-card {
+      background: linear-gradient(180deg, #fff, #f7faff);
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .between { justify-content: space-between; }
+    .stack { display: grid; gap: 8px; }
+
+    .input-row {
+      height: 34px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      color: var(--muted);
+    }
+    .input-row:last-child { border-bottom: 0; }
+    .icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #e8f1ff, #f6f9ff);
+      color: var(--blue);
+      font-size: 10px;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+    .icon.deep {
+      color: #fff;
+      background: linear-gradient(135deg, #2f6ff2, #74a6ff);
+    }
+    .thumb {
+      width: 44px;
+      height: 38px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #dfeeff, #9ec7ff);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 9px;
+      font-weight: 900;
+      flex: 0 0 auto;
+      overflow: hidden;
+    }
+    .thumb.dark {
+      background: linear-gradient(135deg, #18345e, #5b8fff);
+    }
+    .thumb.pale {
+      color: #2f6ff2;
+      background: linear-gradient(135deg, #f1f6ff, #dcecff);
+    }
+    .list {
+      display: grid;
+      gap: 7px;
+    }
+    .list-item {
+      min-height: 40px;
+      padding: 7px;
+      border-radius: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .list-item.flat {
+      border-width: 0 0 1px;
+      border-radius: 0;
+      padding: 7px 0;
+      box-shadow: none;
+    }
+    .line {
+      height: 4px;
+      border-radius: 99px;
+      background: #edf3ff;
+      overflow: hidden;
+    }
+    .line i {
+      display: block;
+      height: 100%;
+      width: var(--w, 50%);
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2f6ff2, #7faeff);
+    }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+    .tile {
+      min-height: 44px;
+      border-radius: 8px;
+      background: #f6f9ff;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: #2d4f86;
+      font-size: 8px;
+      font-weight: 750;
+    }
+    .stat {
+      text-align: center;
+      padding: 6px 4px;
+      border-radius: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+    .stat b {
+      display: block;
+      font-size: 16px;
+      color: var(--navy);
+      line-height: 1;
+    }
+    .stat span {
+      display: block;
+      margin-top: 4px;
+      font-size: 8px;
+      color: var(--muted);
+    }
+    .tabs, .chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+    .bottom {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 10px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      font-size: 8px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .bottom div:first-child { color: var(--blue); font-weight: 850; }
+
+    .login-brand {
+      height: 116px;
+      padding: 24px 18px 0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.9), rgba(255,255,255,0)),
+        linear-gradient(145deg, #eef6ff, #fff);
+    }
+    .logo-text {
+      margin-top: 22px;
+      font-size: 25px;
+      font-weight: 950;
+      color: #1d62d9;
+      line-height: 1;
+    }
+    .cube {
+      position: absolute;
+      right: 12px;
+      top: 18px;
+      width: 52px;
+      height: 58px;
+      background: linear-gradient(135deg, rgba(47,111,242,.10), rgba(111,166,255,.38));
+      clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
+    }
+
+    .video {
+      height: 150px;
+      color: #fff;
+      padding: 12px;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255,255,255,.62), rgba(255,255,255,.08) 26%, transparent 27%),
+        linear-gradient(180deg, #143b68, #9fbedf);
+      position: relative;
+    }
+    .play {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: rgba(20, 40, 75, .62);
+      margin: 36px auto 0;
+      font-size: 18px;
+    }
+    .exam-head {
+      min-height: 76px;
+      color: #fff;
+      padding: 12px;
+      background: linear-gradient(135deg, #2f6ff2, #7facff);
+      border-radius: 0 0 12px 12px;
+    }
+    .warn {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      padding: 0 9px;
+      gap: 6px;
+      border-radius: 8px;
+      background: #fff2e8;
+      color: #df6b2e;
+      font-size: 8px;
+      font-weight: 750;
+    }
+    .option {
+      min-height: 29px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      align-items: center;
+      font-size: 9px;
+      padding: 0 8px 0 0;
+    }
+    .option.active {
+      border-color: var(--blue);
+      background: #eff6ff;
+      color: var(--blue);
+      font-weight: 800;
+    }
+    .fill {
+      height: 29px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 9px;
+      color: var(--muted);
+    }
+    .score-hero {
+      min-height: 124px;
+      padding: 15px 12px 10px;
+      color: #fff;
+      text-align: center;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255,255,255,.32), transparent 45px),
+        linear-gradient(135deg, #2f6ff2, #7aa9ff);
+      border-radius: 0 0 14px 14px;
+    }
+    .score-hero.fail {
+      background:
+        radial-gradient(circle at 20% 12%, rgba(255,255,255,.28), transparent 45px),
+        linear-gradient(135deg, #b492ff, #e3adff);
+    }
+    .big-score {
+      margin: 5px 0 2px;
+      font-size: 34px;
+      line-height: .9;
+      font-weight: 950;
+    }
+    .certificate {
+      margin: 12px;
+      min-height: 168px;
+      border-radius: 10px;
+      padding: 16px 10px;
+      background: #fff;
+      border: 4px double #d5e6ff;
+      text-align: center;
+    }
+    .badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      margin-left: auto;
+      background: linear-gradient(135deg, #ffcc75, #ff8a4e);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 900;
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <script>
+    const item = (num, title, html) => `
+      <section class="unit">
+        <div class="caption">${String(num).padStart(2, "0")} ${title}</div>
+        <div class="phone">${html}</div>
+      </section>`;
+
+    const nav = () => `<div class="bottom"><div>首页</div><div>学习</div><div>考试</div><div>我的</div></div>`;
+    const more = `<span class="round">›</span>`;
+    const courseRows = [
+      ["智能家居系统工程师认证", "24课时 · 初级", "1.2万人学习", "dark"],
+      ["云端协同方案实操", "16课时 · 中级", "8560人学习", ""],
+      ["智能照明快速入门", "12课时 · 初级", "6523人学习", "pale"],
+      ["工业网关部署规范", "10课时 · 中级", "4309人学习", "dark"],
+      ["安全管理规范", "10课时 · 初级", "3120人学习", ""]
+    ];
+
+    const screens = [
+      item(1, "登录", `
+        <div class="login-brand"><div class="cube"></div><div class="logo-text">企训通</div><div class="sm muted" style="margin-top:8px">智能家居行业领先的培训平台</div></div>
+        <div class="pad">
+          <div class="card" style="padding:6px 12px 12px">
+            <div class="input-row"><span class="blue bold">企</span>企业选择<span style="margin-left:auto">›</span></div>
+            <div class="input-row"><span>人</span>工号/手机号</div>
+            <div class="input-row"><span>锁</span>密码<span style="margin-left:auto">眼</span></div>
+          </div>
+          <div class="row between sm" style="margin:10px 0 12px"><span class="blue">忘记密码</span><span class="blue">服务协议 和 隐私条款</span></div>
+          <button class="primary" style="width:100%">立即开启学习</button>
+          <button class="outline" style="width:100%;margin-top:10px">立即注册</button>
+        </div>`),
+
+      item(2, "首页", `
+        <div class="pad">
+          <div class="top"><div><div class="title">欢迎回来，张小智</div><div class="xs muted">安装岗 · 智家科技总部</div></div><div class="round">铃</div></div>
+          <div class="hero" style="margin-top:10px"><span class="pill" style="background:#fff;color:#2f6ff2">推荐课程</span><h2>新员工入职培训</h2><button class="outline" style="width:70px;height:24px">开始学习</button></div>
+          <div class="grid4" style="margin:12px 0"><div class="tile"><span class="icon deep">安</span>安全专题</div><div class="tile"><span class="icon deep">升</span>进阶提升</div><div class="tile"><span class="icon deep">岗</span>岗位必修</div><div class="tile"><span class="icon deep">证</span>认证课程</div></div>
+          <div class="row between"><b class="sm">精选课程</b><span class="xs blue">查看更多</span></div>
+          <div class="list" style="margin-top:8px">
+            <div class="list-item"><div class="thumb pale">AP</div><div><b class="xs">岗位必修（安装岗）</b><div class="xs muted">12课时</div></div>${more}</div>
+            <div class="list-item"><div class="thumb dark">证</div><div><b class="xs">智能家居系统工程师认证</b><div class="xs muted">24课时</div></div>${more}</div>
+            <div class="list-item"><div class="thumb">云</div><div><b class="xs">云端协同方案实操</b><div class="xs muted">16课时</div></div>${more}</div>
+          </div>
+        </div>${nav()}`),
+
+      item(3, "课程列表", `
+        <div class="pad">
+          <div class="top"><span class="round">‹</span><b class="sm">课程中心</b><span class="round">搜</span></div>
+          <div class="tabs" style="margin:10px 0"><span class="pill active">岗位必修</span><span class="pill">售前/售后</span></div>
+          <div class="chips"><span class="pill">产品认知</span><span class="pill">方案设计</span><span class="pill">销售话术</span></div>
+          <div class="row between" style="margin:12px 0 8px"><span class="xs blue">最新⌄</span><span class="xs muted">共6门课程</span></div>
+          <div class="list">${courseRows.map(([t,m,n,k]) => `<div class="list-item flat"><div class="thumb ${k}">课</div><div style="flex:1"><b class="xs">${t}</b><div class="xs muted">${m}<span style="float:right">${n}</span></div></div>${more}</div>`).join("")}</div>
+        </div>`),
+
+      item(4, "课程播放", `
+        <div class="video"><div class="top"><span>‹</span><b class="xs">2026款传感核心组件安装规范</b><span>↻</span></div><div class="play">▶</div><div class="row between xs" style="margin-top:15px"><span>08:45 / 15:20</span><span>2.0X</span><span>1080P</span></div><div class="line" style="margin-top:5px"><i style="--w:56%"></i></div></div>
+        <div class="pad">
+          <div class="pill" style="width:100%;justify-content:flex-start">本节重点：红外传感器的防死角部署与盲点规避</div>
+          <div class="grid2" style="margin:10px 0"><button class="outline">离线缓存</button><button class="outline">分享同事</button></div>
+          <div class="tabs"><span class="pill active">课程目录</span><span class="pill">写笔记(12)</span><span class="pill">课堂提问</span></div>
+          <div class="list" style="margin-top:8px">${[["01","红外传感器防死角部署","08:45"],["02","盲点规避的布置策略","04:32"],["03","安装缺陷与调试要点","06:03"]].map(r=>`<div class="list-item flat"><b class="blue">${r[0]}</b><div style="flex:1"><b class="xs">${r[1]}</b></div><span class="xs blue">${r[2]}</span></div>`).join("")}</div>
+        </div>`),
+
+      item(5, "考试列表", `
+        <div class="exam-head"><b class="md">考试中心</b><div class="round" style="position:absolute;right:14px;top:22px;background:#fff">卷</div></div>
+        <div class="pad">
+          <b class="sm">待完成考试（2场）</b>
+          <div class="list" style="margin:8px 0">
+            <div class="list-item"><div style="flex:1"><b class="xs">智能家居安装与调试能力认证</b><div class="xs muted">30分钟 | 20题<br>截止 2026.05.30</div></div><button class="primary">去考试</button></div>
+            <div class="list-item"><div style="flex:1"><b class="xs">智能门锁售后服务规范</b><div class="xs muted">20分钟 | 15题<br>截止 2026.05.30</div></div><button class="primary">去考试</button></div>
+          </div>
+          <b class="sm">考试记录（3条）</b>
+          <div class="grid3" style="margin-top:8px"><div class="stat"><b class="blue">86</b><span>已通过</span></div><div class="stat"><b class="orange">58</b><span>未通过</span></div><div class="stat"><b class="muted">失</b><span>已失效</span></div></div>
+          <div class="center xs blue" style="margin-top:10px">查看全部记录 ›</div>
+        </div>`),
+
+      item(6, "考前确认", `
+        <div class="hero center" style="height:120px;border-radius:0 0 14px 14px"><div class="xs">认证考试</div><h2 style="font-size:21px">即将开始</h2></div>
+        <div class="pad" style="margin-top:-40px">
+          <div class="card" style="padding:14px;position:relative;z-index:1"><b class="md blue">智能家居方案顾问认证考试</b><div class="grid2" style="margin-top:12px"><div class="row"><span class="icon">时</span><b class="sm">30分钟</b></div><div class="row"><span class="icon">题</span><b class="sm">20题</b></div></div></div>
+          <div style="margin:12px 0 7px"><b class="sm">考试要求说明</b></div>
+          <div class="stack xs" style="line-height:1.8"><span>1. 考试过程中请保持网络稳定。</span><span>2. 禁止切屏、截屏、复制粘贴等行为。</span><span>3. 请独立完成考试，严禁作弊。</span><span>4. 考试时间结束或交卷后自动提交。</span></div>
+          <div class="grid2" style="position:absolute;left:14px;right:14px;bottom:14px"><button class="outline">取消</button><button class="primary">去开始</button></div>
+        </div>`),
+
+      item(7, "单选考试", `
+        <div class="pad">
+          <div class="top"><b class="md">◷ 28:45</b><span class="xs">进度 05/20</span></div>
+          <div class="warn" style="margin:10px 0">切屏监测中，请勿切屏或离开考试 ›</div>
+          <div class="row xs" style="gap:4px"><b>单选题</b><span class="muted">| 分值 5分</span></div>
+          <h3 style="font-size:13px;line-height:1.5;margin:10px 0">Zigbee 厚壁阻挡会导致信号衰减，一般情况下，信号衰减最明显的是？</h3>
+          <div class="stack"><div class="option"><b>A</b><span>金属门窗</span></div><div class="option active"><b>B</b><span>混凝土墙体</span></div><div class="option"><b>C</b><span>木质隔断</span></div><div class="option"><b>D</b><span>玻璃幕墙</span></div></div>
+          <div class="grid2" style="position:absolute;left:14px;right:14px;bottom:14px"><button class="outline">上一题</button><button class="primary">确认进入第 6 题</button></div>
+        </div>`),
+
+      item(8, "填空考试", `
+        <div class="pad">
+          <div class="top"><b class="md">◷ 28:45</b><span class="xs">进度 06/20</span></div>
+          <div class="warn" style="margin:10px 0">切屏监测中，请勿切屏或离开考试 ›</div>
+          <div class="row xs" style="gap:4px"><b>填空题</b><span class="muted">| 分值 10分</span></div>
+          <h3 style="font-size:13px;line-height:1.5;margin:10px 0">请填写 Zigbee 设备在网络中的四种常见角色。</h3>
+          <div class="stack">${["第一个空","第二个空","第三个空","第四个空"].map(t=>`<div class="fill"><span>${t}</span><span>请输入答案</span></div>`).join("")}</div>
+          <div class="grid2" style="position:absolute;left:14px;right:14px;bottom:14px"><button class="outline">上一题</button><button class="primary">确认进入第 7 题</button></div>
+        </div>`),
+
+      item(9, "考试通过", `
+        <div class="score-hero"><div class="md">已通过认证</div><div class="big-score">86<span style="font-size:14px">分</span></div><div class="xs">智能家居方案顾问认证考试</div></div>
+        <div class="pad">
+          <div class="grid3"><div class="stat"><b>17/20</b><span>正确题数</span></div><div class="stat"><b>26:18</b><span>用时</span></div><div class="stat"><b>85%</b><span>正确率</span></div></div>
+          <div class="list" style="margin-top:10px">${[["单选题","9/10"],["多选题","4/5"],["填空题","4/5"]].map(r=>`<div class="list-item flat"><span>${r[0]}</span><span style="margin-left:auto">${r[1]} ›</span></div>`).join("")}</div>
+          <div class="grid2" style="position:absolute;left:14px;right:14px;bottom:14px"><button class="outline">返回首页</button><button class="primary">再练一次</button></div>
+        </div>`),
+
+      item(10, "考试未通过", `
+        <div class="score-hero fail"><div class="md">未通过认证</div><div class="big-score">58<span style="font-size:14px">分</span></div><div class="xs">未达到70分通过线</div></div>
+        <div class="pad">
+          <div class="grid3"><div class="stat"><b>11/20</b><span>正确题数</span></div><div class="stat"><b>29:42</b><span>用时</span></div><div class="stat"><b>55%</b><span>正确率</span></div></div>
+          <div class="list" style="margin-top:10px">${[["单选题","6/10"],["多选题","2/5"],["填空题","3/5"]].map(r=>`<div class="list-item flat"><span>${r[0]}</span><span style="margin-left:auto">${r[1]} ›</span></div>`).join("")}</div>
+          <div class="grid2" style="position:absolute;left:14px;right:14px;bottom:14px"><button class="outline">去学习</button><button class="primary">重新考试</button></div>
+        </div>`),
+
+      item(11, "证书详情", `
+        <div class="exam-head center"><b class="md">已获得证书</b></div>
+        <div class="certificate"><b style="font-size:14px">智能家居安装与<br>调试能力认证</b><div class="xs" style="margin:6px 0">QIXUNTONG CERTIFICATE</div><div class="md blue">能力认证证书</div><div style="font-size:19px;font-weight:950;margin:10px 0">张 明</div><div class="row between xs"><span>编号<br>QXT-SH-20260528-0086</span><span>颁发日期<br>2026.05.28</span></div><div class="badge">奖</div></div>
+        <div class="grid2" style="position:absolute;left:14px;right:14px;bottom:14px"><button class="outline">下载证书</button><button class="primary">分享证书</button></div>`),
+
+      item(12, "产品说明", `
+        <div class="pad">
+          <b class="sm">产品说明</b>
+          <div class="fill" style="margin:8px 0">搜索型号/能力/场景</div>
+          <div class="chips"><span class="pill active">全部</span><span class="pill">网关</span><span class="pill">无线</span><span class="pill">安防</span><span class="pill">开关</span></div>
+          <div class="chips" style="margin-top:6px"><span class="pill">传感器</span><span class="pill">照明</span><span class="pill">能源</span></div>
+          <div class="row between xs" style="margin:10px 0"><span class="blue">综合 ›</span><span>新品</span><span>热门</span><span>筛选</span></div>
+          <div class="list">${["RG-EAP262(G)V2","RG-EAP262(E)","RG-EAP162(E)","QXT-GW Pro","QXT-Lock X3"].map((t,i)=>`<div class="list-item flat"><div class="thumb ${i>2?"dark":"pale"}">${i+1}</div><b class="xs" style="flex:1">${t}</b>${more}</div>`).join("")}</div>
+          <div class="center xs muted" style="margin-top:8px">共 6 款产品</div>
+        </div>`),
+
+      item(13, "产品详情", `
+        <div class="video" style="height:138px"><div class="top"><span>‹</span><b class="xs">产品介绍视频</b><span>⇧</span></div><div class="play">▶</div><div class="row between xs" style="margin-top:12px"><span>0:08 / 0:58</span><span>声</span><span>⛶</span></div><div class="line" style="margin-top:4px"><i style="--w:18%"></i></div></div>
+        <div class="pad">
+          <div class="row between"><b class="md">RG-EAP262(G) V2</b><b class="md orange">¥699</b></div>
+          <div class="xs muted" style="margin:8px 0">EAN 6971693279841</div>
+          <b class="sm">说明信息</b>
+          <div class="grid2 xs" style="margin-top:9px;gap:9px"><span>上市时间<br><b>2024-04</b></span><span>产品类型<br><b>吸顶 AP</b></span><span>蓝牙<br><b>不支持</b></span><span>传输速率<br><b>1775 Mbps</b></span><span>射频设计<br><b>双射 2.4G/5G</b></span><span>Wi-Fi 标准<br><b>Wi-Fi 6</b></span></div>
+        </div>`),
+
+      item(14, "我的", `
+        <div class="hero" style="height:74px;border-radius:0 0 12px 12px"><div class="row between"><div class="row"><div class="icon" style="width:36px;height:36px;border-radius:18px">张</div><div><b class="sm">张小智</b><div class="xs">安装岗 · 智家科技总部</div></div></div><span class="xs">编辑</span></div></div>
+        <div class="pad">
+          <div class="grid3"><div class="stat"><b>126</b><span>累计学习时长</span></div><div class="stat"><b>5</b><span>获得证书</span></div><div class="stat"><b>82%</b><span>完成率</span></div></div>
+          <div class="row between" style="margin:12px 0 7px"><b class="sm">最近学习记录</b><span class="xs blue">全部 ›</span></div>
+          <div class="list">${["2026款传感核心组件安装规范","云端协同方案实操","安全管理规范"].map((t,i)=>`<div class="list-item flat"><span class="icon">${i+1}</span><b class="xs" style="flex:1">${t}</b><span class="xs muted">学习至 0${8+i}:45</span></div>`).join("")}</div>
+          <div class="list" style="margin-top:8px">${["系统设置与隐私","离线缓存管理","退出当前企业账号"].map(t=>`<div class="list-item flat"><span class="blue">○</span><b class="xs" style="flex:1">${t}</b>${more}</div>`).join("")}</div>
+        </div>`),
+
+      item(15, "开发者调试", `
+        <div class="pad">
+          <div class="top"><span class="round">‹</span><b class="sm blue">Debug 内部环境</b></div>
+          <b class="sm" style="display:block;margin:12px 0 8px">接口环境</b>
+          <div class="row xs between"><span>● 测试</span><span>○ 预发</span><span>○ 生产</span></div>
+          <div class="soft-card" style="padding:8px;margin:8px 0 12px">
+            <div class="fill" style="height:24px;color:#2f6ff2">api-test.qixuntong.local ✓</div>
+            <div class="fill" style="height:24px">api-mock.qixuntong.com</div>
+            <div class="fill" style="height:24px">api.qixuntong.com</div>
+          </div>
+          <b class="sm">调试表单</b>
+          <div class="stack" style="margin-top:8px"><div class="fill"><span>调试范围</span><span>考试流程⌄</span></div><div class="fill"><span>接口路径</span><span>/training/exam/submit</span></div><div class="fill"><span>用户 ID</span><span>u_20260528_zhang</span></div><div class="fill"><span>调试备注</span><span>请输入备注信息</span></div></div>
+          <div class="grid2" style="position:absolute;left:14px;right:14px;bottom:14px"><button class="outline">取消</button><button class="primary">保存</button></div>
+        </div>`),
+
+      item(16, "加载失败", `
+        <div class="pad center" style="height:100%;display:flex;flex-direction:column;justify-content:center">
+          <div style="height:98px;margin-bottom:16px;background:linear-gradient(180deg,#eff6ff,#fff);border-radius:16px;display:grid;place-items:center;color:#6ea2ff;font-size:46px">↗</div>
+          <b class="md blue">加载失败</b>
+          <p class="sm muted" style="line-height:1.7">网络连接出现问题，<br>请检查后重试</p>
+          <button class="primary" style="width:100%;margin:10px 0">重试</button>
+          <button class="outline" style="width:100%">返回首页</button>
+        </div>`)
+    ];
+
+    document.getElementById("grid").innerHTML = screens.join("");
+  </script>
+</body>
+</html>
